@@ -1,0 +1,26 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.PodcastDownloader" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your dark theme here. -->
+        <item name="colorPrimary">@color/accent_dark</item>
+        <item name="android:fontFamily">@font/work_sans</item>
+        <item name="fontFamily">@font/work_sans</item>
+        <item name="android:layout_marginBottom">4sp</item>
+        <item name="android:layout_marginTop">4sp</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+    <style name="TextStyle" parent="MaterialAlertDialog.Material3.Body.Text">
+    </style>
+    <style name="MainTitle">
+        <item name="android:fontFamily">@font/work_sans_bold</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">36sp</item>
+    </style>
+    <style name="SmallerTitle">
+        <item name="android:fontFamily">@font/work_sans_bold</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">24sp</item>
+    </style>
+
+
+</resources>

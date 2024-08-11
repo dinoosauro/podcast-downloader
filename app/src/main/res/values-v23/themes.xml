@@ -1,0 +1,23 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+  <style name="Theme.PodcastDownloader" parent="Base.Theme.PodcastDownloader">
+    <!-- Transparent system bars for edge-to-edge. -->
+    <item name="android:navigationBarColor">@android:color/transparent</item>
+    <item name="android:statusBarColor">@android:color/transparent</item>
+    <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
+    <item name="android:fontFamily">@font/work_sans</item>
+    <item name="fontFamily">@font/work_sans</item>
+    <item name="android:layout_marginBottom">4sp</item>
+    <item name="android:layout_marginTop">4sp</item>
+    <item name="android:textSize">16sp</item>
+
+  </style>
+  <style name="TextStyle" parent="MaterialAlertDialog.Material3.Body.Text">
+  </style>
+  <style name="MainTitle" parent="TextAppearance.Material3.HeadlineLarge">
+    <item name="android:fontFamily">@font/work_sans_bold</item>
+  </style>
+  <style name="SmallerTitle" parent="TextAppearance.Material3.HeadlineSmall">
+    <item name="android:fontFamily">@font/work_sans_bold</item>
+  </style>
+
+</resources>
