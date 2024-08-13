@@ -55,4 +55,7 @@
     <string name="downloading_podcasts">Sto scaricando i podcast...</string>
     <string name="downloading_podcasts_desc">Questa notifica scomparirà quando sarà finita l\'operazione.</string>
     <string name="download">Scarica</string>
+    <string name="failed_xml_writing">Fallita la scrittura dell\'XML nella cartella PodcastDownloader. Questo non influenzerà il download del podcast.</string>
+    <string name="downloads_settings">Download:</string>
+    <string name="save_xml_file">Salva il file XML nella directory PodcastDownloader</string>
 </resources>

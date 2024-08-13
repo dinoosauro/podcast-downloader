@@ -48,7 +48,7 @@
                 style="@style/TextAppearance.Material3.HeadlineMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/concurrent_downloads" />
+                android:text="@string/downloads_settings" />
 
             <TextView
                 android:id="@+id/textView4"
@@ -69,6 +69,13 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/concurrent_downloads_hint" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/saveXmlFile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/save_xml_file"
+                android:textSize="16sp"></com.google.android.material.materialswitch.MaterialSwitch>
 
             <TextView
                 android:id="@+id/textView5"

@@ -38,6 +38,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.gson.Gson;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
 
@@ -49,16 +50,23 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import dinoosauro.podcastdownloader.PodcastClasses.GetAlbumArt;
 import dinoosauro.podcastdownloader.PodcastClasses.PodcastDownloadInformation;
@@ -67,6 +75,7 @@ import dinoosauro.podcastdownloader.PodcastClasses.ShowItems;
 import dinoosauro.podcastdownloader.UIHelper.CheckUpdates;
 import dinoosauro.podcastdownloader.UIHelper.ColorMenuIcons;
 import dinoosauro.podcastdownloader.UIHelper.DownloadUIManager;
+import dinoosauro.podcastdownloader.UIHelper.PodcastProgress;
 
 public class MainActivity extends AppCompatActivity {
     /**
@@ -111,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
         CollapsingToolbarLayout collapsingToolbar = findViewById(R.id.collapsing_toolbar);
         collapsingToolbar.setTitle(getResources().getString(R.string.downloader));
         DownloadUIManager.setLinearLayout(findViewById(R.id.downloadItemsContainer)); // Set that the default LinearLayout where the metadata information cards will be appended is the one in MainActivity
+        PodcastProgress.setProgressBar(findViewById(R.id.progressBar)); // Set what progress bar should be used when an episode is added in the queue (or has finished downloading)
         if (Build.VERSION.SDK_INT <= 28) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
@@ -144,9 +154,29 @@ public class MainActivity extends AppCompatActivity {
                     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                     DocumentBuilder builder = factory.newDocumentBuilder();
                     Document document = builder.parse(finalUrl);
+                    SharedPreferences preferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
+                    if (preferences.getBoolean("WriteOutputXML", true)) {
+                        try {
+                            // Create folder and file
+                            File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "PodcastDownloader");
+                            folder.mkdir();
+                            String getPodcastTitle = nullPlaceholder(document.getElementsByTagName("title").item(0));
+                            File xmlFile = new File(folder, PodcastDownloader.DownloadQueue.nameSanitizer(getPodcastTitle != null ? getPodcastTitle : finalUrl) + " [" + PodcastDownloader.DownloadQueue.nameSanitizer((new Date()).toString()) + "].xml");
+                            xmlFile.createNewFile();
+                            FileOutputStream fos = new FileOutputStream(xmlFile);
+                            // Convert the Document to a String using the TransformerFactory. This might be rewritten later, since it would be more convenient to directly fetch the XML as a string and write it.
+                            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                            Transformer transformer = transformerFactory.newTransformer();
+                            StringWriter stringWriter = new StringWriter();
+                            transformer.transform(new DOMSource(document), new StreamResult(stringWriter));
+                            fos.write(stringWriter.toString().getBytes());
+                            fos.close();
+                        } catch (Exception ex) {
+                            Snackbar.make(view, R.string.failed_xml_writing, BaseTransientBottomBar.LENGTH_LONG).show();
+                        }
+                    }
                     document.getDocumentElement().normalize();
                     NodeList items = document.getElementsByTagName("item");
-                    SharedPreferences preferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
                     boolean shouldUseSuggestedTrack = preferences.getBoolean("UseSuggestedTrack", true); // If false, the suggested track from the RSS feed will be ignored
                     int trackFallbackType = preferences.getInt("SuggestedTrackFallback", 0); // What the application should do if there isn't a suggested track from the RSS feed
                     int trackFallbackStartFrom = preferences.getInt("SuggestedTrackStartFrom", 1); // From what number the numeration should tart
@@ -215,6 +245,10 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), Context.RECEIVER_EXPORTED); else registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
         // Get if the user has shared an URL with the application, and start the RSS fetching
         for (Map.Entry<Long, PodcastDownloadInformation> item : PodcastDownloader.DownloadQueue.currentOperations.entrySet()) DownloadUIManager.addPodcastConversion(item.getValue(), item.getKey()); // Restore the metadata cards of the currently downloaded items. This might happen if the user changes theme.
+        if (PodcastDownloader.DownloadQueue.currentOperations.size() > 0) {
+            findViewById(R.id.downloadItemsContainer).setVisibility(View.VISIBLE); // Make the container visible if there are new elements
+            ((ProgressBar) findViewById(R.id.progressBar)).setMax(PodcastDownloader.DownloadQueue.getInfoLength());
+        }
         CheckUpdates.checkAndDisplay(MainActivity.this); // Look if there are updates available
     }
     @Override
@@ -245,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
                         // And start its download. *THIS MUST BE DONE IN THE MAIN THREAD*: otherwise, the Thread won't be the same which initialized the View, causing in an Exception
                         runOnUiThread(PodcastDownloader.DownloadQueue::startDownload);
                         String realPath = getRealPathFromURI(context, ((DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE)).getUriForDownloadedFile(downloadId));
-                        if (realPath == null) {
+                        if (realPath == null && currentPodcastInformation != null) {
                             File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), currentPodcastInformation.downloadPath);
                             if (file.exists()) realPath = file.getAbsolutePath();
                         }
@@ -285,7 +319,6 @@ public class MainActivity extends AppCompatActivity {
                                     metadataFile.renameTo(file); // And move the metadata file to the location
                                     MediaScannerConnection.scanFile(MainActivity.this, new String[]{file.getAbsolutePath()}, new String[]{"audio/mpeg"}, null); // Scan the new file
                                 } catch (Exception e) {
-                                    e.printStackTrace();
                                     runOnUiThread(() -> {
                                         Snackbar.make(findViewById(R.id.downloadItemsContainer), getResources().getString(R.string.failed_metadata_add) + " " + currentPodcastInformation.items.get(0).title, BaseTransientBottomBar.LENGTH_LONG).show();
                                     });
@@ -315,11 +348,18 @@ public class MainActivity extends AppCompatActivity {
                                     Thread.sleep(500);
                                     runOnUiThread(() -> {
                                         PodcastDownloader.DownloadQueue.disableServiceIfNecessary(); // Check if the Foreground Service should be disabled (and disable it if necessary)
-                                        for (ViewGroup view : destinationLayout) ((ViewGroup) view.getParent()).removeView(view);
+                                        for (ViewGroup view : destinationLayout) {
+                                            if (view == null) continue;
+                                            ViewGroup parentElement = ((ViewGroup) view.getParent());
+                                            if (parentElement != null) parentElement.removeView(view);
+                                        }
+                                        PodcastProgress.updateValue(1);
                                     });
                                 } catch (InterruptedException e) {
                                     Log.e("Failed removal", String.valueOf(downloadId));
                                 }
+                            } else {
+                                runOnUiThread(() -> PodcastProgress.updateValue(1));
                             }
 
                     }).start();
