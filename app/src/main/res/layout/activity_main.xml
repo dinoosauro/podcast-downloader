@@ -69,24 +69,34 @@
                 android:layout_height="wrap_content"
                 android:text="@string/start_download" />
 
-            <TextView
-                android:id="@+id/textView7"
-                style="@style/TextAppearance.Material3.HeadlineSmall"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/downloading_these_files" />
-
-            <TextView
-                android:id="@+id/textView8"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/downloading_files_desc" />
-
             <LinearLayout
                 android:id="@+id/downloadItemsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical" />
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/textView7"
+                    style="@style/TextAppearance.Material3.HeadlineSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/downloading_these_files" />
+
+                <TextView
+                    android:id="@+id/textView8"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/downloading_files_desc" />
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="0"
+                    android:progress="0" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

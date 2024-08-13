@@ -122,6 +122,7 @@ public class DownloadUIManager {
      * @param operationId the long that identifies this download
      */
     public static void addPodcastConversion(PodcastInformation downloader, long operationId) {
+        linearLayout.setVisibility(View.VISIBLE); // On the first conversion, the LinearLayout visibility will be set to GONE
         addPodcastConversion(downloader, operationId, linearLayout);
     }
 }

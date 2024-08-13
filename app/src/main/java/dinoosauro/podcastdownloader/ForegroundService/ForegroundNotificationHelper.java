@@ -49,6 +49,7 @@ public class ForegroundNotificationHelper {
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
         return new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.monochrome_icon)
                 .setContentTitle(context.getResources().getString(R.string.downloading_podcasts))
                 .setContentText(context.getResources().getString(R.string.downloading_podcasts_desc))
                 .setContentIntent(pendingIntent)

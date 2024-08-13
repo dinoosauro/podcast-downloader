@@ -25,6 +25,7 @@ import dinoosauro.podcastdownloader.PodcastClasses.PodcastInformation;
 import dinoosauro.podcastdownloader.PodcastClasses.ShowItems;
 import dinoosauro.podcastdownloader.UIHelper.DownloadUIManager;
 import dinoosauro.podcastdownloader.ForegroundService.ForegroundNotificationHelper;
+import dinoosauro.podcastdownloader.UIHelper.PodcastProgress;
 
 public class PodcastDownloader extends Application {
     @Override
@@ -93,11 +94,19 @@ public class PodcastDownloader extends Application {
         }
 
         /**
+         * Get the size of the remaining items to download
+         * @return an int, with the number of items that are in the queue.
+         */
+        public static int getInfoLength() {
+            return downloadPodcastInfoList.size();
+        }
+
+        /**
          * Sanitize the name so that it's valid on every OS
          * @param str the string to sanitize
          * @return the sanitized string
          */
-        private static String nameSanitizer(String str) {
+        public static String nameSanitizer(String str) {
             return str.replace("<", "‹").replace(">", "›").replace(":", "∶").replace("\"", "″").replace("/", "∕").replace("\\", "∖").replace("|", "¦").replace("?", "¿").replace("*", "");
         }
 
@@ -105,10 +114,14 @@ public class PodcastDownloader extends Application {
          * If no elements are in the queue, the Foreground service will be disabled.
          */
         public static void disableServiceIfNecessary() {
-            if (currentOperations.size() == 0 && downloadPodcastInfoList.size() == 0 && ForegroundNotificationHelper.isServiceRunning(appContext)) {
+            try {
+                if (currentOperations.size() == 0 && downloadPodcastInfoList.size() == 0 && ForegroundNotificationHelper.isServiceRunning(appContext)) {
                 Intent stopIntent = new Intent(appContext, ForegroundService.class);
                 stopIntent.setAction("STOP_FOREGROUND_SERVICE");
                 appContext.startService(stopIntent);
+            }
+            } catch (Exception ex) {
+                Toast.makeText(appContext, "Failed to stop Foreground Service", Toast.LENGTH_LONG).show();
             }
         }
 
@@ -119,9 +132,13 @@ public class PodcastDownloader extends Application {
         public static void startDownload() {
             PodcastInformation podcastInformation = shift();
             if (podcastInformation != null) {
-                if (!ForegroundNotificationHelper.isServiceRunning(appContext)) {
-                    Intent serviceIntent = new Intent(appContext, ForegroundService.class);
-                    appContext.startService(serviceIntent);
+                try {
+                    if (!ForegroundNotificationHelper.isServiceRunning(appContext)) {
+                        Intent serviceIntent = new Intent(appContext, ForegroundService.class);
+                        appContext.startService(serviceIntent);
+                    }
+                } catch (Exception ex) {
+                    Toast.makeText(appContext, "Failed to start Foreground Service. Download experience might be unreliable.", Toast.LENGTH_LONG).show();
                 }
                 ShowItems currentPodcastInformation = podcastInformation.items.get(0);
                 DownloadManager.Request request = new DownloadManager.Request(Uri.parse(currentPodcastInformation.url));
@@ -145,7 +162,6 @@ public class PodcastDownloader extends Application {
                     fos.close();
                 } catch (IOException e) {
                     Toast.makeText(appContext, appContext.getResources().getString(R.string.failed_json_creation) + " " + currentPodcastInformation.title, Toast.LENGTH_LONG).show();
-                    e.printStackTrace();
                 }
                 String subPath = "PodcastDownloader/" + nameSanitizer(podcastInformation.title) + "/" + nameSanitizer(currentPodcastInformation.title + fileExtension);
                 request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, subPath);
@@ -162,6 +178,7 @@ public class PodcastDownloader extends Application {
          */
         public static void enqueueItem(PodcastInformation podcastInformation) {
             downloadPodcastInfoList.add(podcastInformation);
+            PodcastProgress.updateMaximum(1);
             if (currentOperations.size() < appContext.getSharedPreferences(appContext.getPackageName(), Context.MODE_PRIVATE).getInt("ConcurrentDownloads", 3)) startDownload();
         }
     }

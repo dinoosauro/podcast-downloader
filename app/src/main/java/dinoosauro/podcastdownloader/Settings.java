@@ -70,6 +70,7 @@ public class Settings extends AppCompatActivity {
             put((View) findViewById(R.id.jpegQuality), new updateFields("JpegQuality", SettingsSave.SAVE_AS_INT, "80"));
             put((View) findViewById(R.id.mp3Metadata), new updateFields("MP3Metadata", SettingsSave.SAVE_AS_BOOLEAN, "1"));
             put((View) findViewById(R.id.htmlParsing), new updateFields("DecodeHTML", SettingsSave.SAVE_AS_BOOLEAN, "1"));
+            put((View) findViewById(R.id.saveXmlFile), new updateFields("WriteOutputXML", SettingsSave.SAVE_AS_BOOLEAN, "1"));
         }};
         SharedPreferences preferences = this.getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         for (Map.Entry<View, updateFields> entry : updateValue.entrySet()) {
