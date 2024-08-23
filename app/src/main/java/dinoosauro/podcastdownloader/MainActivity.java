@@ -298,6 +298,12 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     tag.setArtist(currentPodcastInformation.author);
                                     tag.setDate(currentPodcastInformation.items.get(0).publishedDate);
+                                    if (currentPodcastInformation.items.get(0).publishedDate != null) { // Add year
+                                        String number = currentPodcastInformation.items.get(0).publishedDate.length() > 12 ? currentPodcastInformation.items.get(0).publishedDate.substring(12, currentPodcastInformation.items.get(0).publishedDate.indexOf(' ', 12)).trim() : currentPodcastInformation.items.get(0).publishedDate.trim(); // In the Podcast standard syntax, the year is from the twelfth char. If there aren't enough characters, we'll try to use the entire string as the year.
+                                        if (number.matches("^\\d+$")) { // Check that the string is composed of numbers
+                                            tag.setYear(number);
+                                        }
+                                    }
                                     tag.setTitle(currentPodcastInformation.items.get(0).title);
                                     String description = currentPodcastInformation.items.get(0).description;
                                     if (description != null && getSharedPreferences(getPackageName(), Context.MODE_PRIVATE).getBoolean("DecodeHTML", true)) { // Parse the HTML string

@@ -6,6 +6,10 @@ import android.content.Intent;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.net.Uri;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -15,25 +19,28 @@ import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import dinoosauro.podcastdownloader.PodcastClasses.PodcastInformation;
+import dinoosauro.podcastdownloader.PodcastDownloader;
 import dinoosauro.podcastdownloader.R;
 
 public class DownloadUIManager {
     /**
      * The LinearLayout where the items will be added, if no other layout is provided
      */
-    private static LinearLayout linearLayout;
+    private static LinearLayout mainLinearLayout;
 
     /**
      * Change the default LinearLayout for metadata information
      * @param layout the LinearLayout
      */
     public static void setLinearLayout(LinearLayout layout) {
-        linearLayout = layout;
+        mainLinearLayout = layout;
     }
 
     /**
@@ -42,10 +49,13 @@ public class DownloadUIManager {
      * @param asset the name of the asset in the "drawable" folder
      * @param context the Context used for creating the layout
      * @param underline if the text should be underlined
+     * @param updateText The void to call when the EditText is edited. Pass null to make the text non-editable
+     * @param contentDescription the hint that'll be displayed in the EditText
      * @return a LinearLayout, with the image and the text added.
      */
-    private static LinearLayout createDataInformation(String text, String asset, Context context, boolean underline) {
+    private static LinearLayout createDataInformation(String text, String asset, Context context, boolean underline, UpdateContent updateText, String contentDescription) {
         LinearLayout container = new LinearLayout(context);
+        container.setGravity(Gravity.CENTER_VERTICAL);
         container.setPadding(ColorMenuIcons.getScalablePixels(10, context), ColorMenuIcons.getScalablePixels(5, context), ColorMenuIcons.getScalablePixels(10, context), ColorMenuIcons.getScalablePixels(5, context));
         container.setOrientation(LinearLayout.HORIZONTAL);
         // Adding the icon:
@@ -62,12 +72,40 @@ public class DownloadUIManager {
         params.weight = 0f;
         params.rightMargin = 10;
         imageView.setLayoutParams(params);
-        // Adding the text:
-        TextView textView = new TextView(context);
-        if (underline) textView.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
-        textView.setText(text);
         container.addView(imageView);
-        container.addView(textView);
+        // Adding the text:
+        if (updateText != null) { // Add an EditText, since the field can be edited
+            LinearLayout.LayoutParams params1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT); // Make sure the textbox occupies full width
+            TextInputLayout textInputLayout = new TextInputLayout(context);
+            textInputLayout.setLayoutParams(params1);
+            TextInputEditText inputEditText = new TextInputEditText(context);
+            inputEditText.setLayoutParams(params1);
+            inputEditText.setHint(contentDescription);
+            inputEditText.setText(text);
+            inputEditText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    updateText.updateLogic(s.toString());
+                }
+            });
+            textInputLayout.addView(inputEditText);
+            container.addView(textInputLayout);
+        } else {
+            TextView textView = new TextView(context);
+            if (underline) textView.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
+            textView.setText(text);
+            container.addView(textView);
+        }
         return container;
     }
 
@@ -76,10 +114,12 @@ public class DownloadUIManager {
      * @param text the text
      * @param asset the name of the asset in the "drawable" folder
      * @param context the Context used for creating the layout
+     * @param updateContent The void to call when the EditText is edited. Pass null to make the text non-editable
+     * @param contentDescription the hint that'll be displayed in the EditText
      * @return a LinearLayout, with the image and the text added.
      */
-    private static LinearLayout createDataInformation(String text, String asset, Context context) {
-        return createDataInformation(text, asset, context, false);
+    private static LinearLayout createDataInformation(String text, String asset, Context context, UpdateContent updateContent, String contentDescription) {
+        return createDataInformation(text, asset, context, false, updateContent, contentDescription);
     }
 
     /**
@@ -98,12 +138,49 @@ public class DownloadUIManager {
         cardView.setPadding(ColorMenuIcons.getScalablePixels(10, linearLayout.getContext()), ColorMenuIcons.getScalablePixels(20, linearLayout.getContext()), ColorMenuIcons.getScalablePixels(10, linearLayout.getContext()), ColorMenuIcons.getScalablePixels(20, linearLayout.getContext()));
         LinearLayout innerLayout = new LinearLayout(cardView.getContext());
         innerLayout.setOrientation(LinearLayout.VERTICAL);
-        innerLayout.addView(createDataInformation(downloader.items.get(0).title, "baseline_keyboard_voice_24", linearLayout.getContext()));
-        innerLayout.addView(createDataInformation(downloader.title, "baseline_podcasts_24", innerLayout.getContext()));
-        innerLayout.addView(createDataInformation(downloader.items.get(0).author, "baseline_person_24", linearLayout.getContext()));
-        innerLayout.addView(createDataInformation(downloader.items.get(0).description, "baseline_short_text_24", linearLayout.getContext()));
-        innerLayout.addView(createDataInformation(downloader.items.get(0).episodeNumber + " [" + downloader.items.get(0).publishedDate + "]", "baseline_numbers_24", linearLayout.getContext()));
-        LinearLayout linkView = createDataInformation(downloader.items.get(0).url, "baseline_link_24", linearLayout.getContext(), true);
+        innerLayout.addView(createDataInformation(downloader.items.get(0).title, "baseline_keyboard_voice_24", linearLayout.getContext(), linearLayout == mainLinearLayout ? null : new UpdateContent() {
+            @Override
+            public void updateLogic(String newText) {
+                PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
+                if (temp != null) temp.items.get(0).title = newText;
+            }
+        }, "Episode title"));
+        innerLayout.addView(createDataInformation(downloader.title, "baseline_podcasts_24", innerLayout.getContext(), new UpdateContent() {
+            @Override
+            public void updateLogic(String newText) {
+                PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
+                if (temp != null) temp.title = newText;
+            }
+        }, "Show title"));
+        innerLayout.addView(createDataInformation(downloader.items.get(0).author, "baseline_person_24", linearLayout.getContext(), new UpdateContent() {
+            @Override
+            public void updateLogic(String newText) {
+                PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
+                if (temp != null) temp.items.get(0).author = newText;
+            }
+        }, "Podcast author"));
+        innerLayout.addView(createDataInformation(downloader.items.get(0).description, "baseline_short_text_24", linearLayout.getContext(), new UpdateContent() {
+            @Override
+            public void updateLogic(String newText)  {
+                PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
+                if (temp != null) temp.items.get(0).description = newText;
+            }
+        }, "Podcast description"));
+        innerLayout.addView(createDataInformation(downloader.items.get(0).episodeNumber, "baseline_numbers_24", linearLayout.getContext(), new UpdateContent() {
+            @Override
+            public void updateLogic(String newText) {
+                PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
+                if (temp != null) temp.items.get(0).episodeNumber = newText;
+            }
+        }, "Episode number"));
+        innerLayout.addView(createDataInformation(downloader.items.get(0).publishedDate, "baseline_calendar_month_24", linearLayout.getContext(), new UpdateContent() {
+            @Override
+            public void updateLogic(String newText) {
+                PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
+                if (temp != null) temp.items.get(0).publishedDate = newText;
+            }
+        }, "Published date"));
+        LinearLayout linkView = createDataInformation(downloader.items.get(0).url, "baseline_link_24", linearLayout.getContext(), true, null, "URL");
         linkView.setOnClickListener(view -> {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(downloader.items.get(0).url));
             linearLayout.getContext().startActivity(intent);
@@ -122,7 +199,7 @@ public class DownloadUIManager {
      * @param operationId the long that identifies this download
      */
     public static void addPodcastConversion(PodcastInformation downloader, long operationId) {
-        linearLayout.setVisibility(View.VISIBLE); // On the first conversion, the LinearLayout visibility will be set to GONE
-        addPodcastConversion(downloader, operationId, linearLayout);
+        mainLinearLayout.setVisibility(View.VISIBLE); // On the first conversion, the LinearLayout visibility will be set to GONE
+        addPodcastConversion(downloader, operationId, mainLinearLayout);
     }
 }

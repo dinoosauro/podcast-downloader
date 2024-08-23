@@ -1,12 +1,9 @@
 package dinoosauro.podcastdownloader.UIHelper;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -14,7 +11,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.concurrent.Callable;
 
 import dinoosauro.podcastdownloader.R;
 
@@ -22,7 +18,7 @@ public class CheckUpdates {
     /**
      * The current version of PodcastDownloader
      */
-    public static final String VERSION_NUMBER = "1.0.1";
+    public static final String VERSION_NUMBER = "1.0.2";
     /**
      * The latest version, fetched from GitHub
      */
@@ -69,9 +65,7 @@ public class CheckUpdates {
                         context.startActivity(intent);
                     })
                     .setNeutralButton(R.string.postpone_update, null)
-                    .setNegativeButton(R.string.skip_update, ((dialog, which) -> {
-                        context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE).edit().putString("AvoidVersionUpdate", suggestedVersion).apply();
-                    }))
+                    .setNegativeButton(R.string.skip_update, ((dialog, which) -> context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE).edit().putString("AvoidVersionUpdate", suggestedVersion).apply()))
                     .show());
         });
     }
