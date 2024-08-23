@@ -36,6 +36,7 @@ In the settings, you can customize:
 
 - The number of concurrent downloads (how many downloads can happen at the same
   time)
+- If you want to save the XML file in the PodcastsDownloader directory
 
 ### Metadata
 
