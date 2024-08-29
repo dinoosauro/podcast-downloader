@@ -26,6 +26,21 @@ selected items" button (or the download icon at the top).
 You'll go back to the Downloader UI. Now, at the bottom you'll find the episodes
 that are being downloaded. They'll disappear when the download ends.
 
+## Downloading new episodes
+
+![The dialog that permits to download the new episodes](./readme_assets/download_new_episodes.jpg)
+
+Starting from version 1.1.0, PodcastDownloader keeps track of the RSS feed
+downloaded, and it can download the new episodes. To do this, click on the
+"Download the new episodes" button.
+
+A dialog will appear. Here you can choose if the application should stop the
+download of that RSS feed at the first file that has been already downloaded,
+and how PodcastDownloader should look for duplicates. You have two options:
+
+- Look if a file with the same name exists
+- Look if the URL has already been downloaded
+
 ## Settings
 
 ![Settings UI](./readme_assets/settings_ui.jpg)
@@ -36,12 +51,15 @@ In the settings, you can customize:
 
 - The number of concurrent downloads (how many downloads can happen at the same
   time)
-- If you want to save the XML file in the PodcastsDownloader directory
+- If you want to save the XML file in the PodcastDownloader directory
 
 ### Metadata
 
 - If you want to add metadata to MP3 files
-- And if the description should be parsed from HTML
+- If the description should be parsed from HTML
+- If the application should keep the XML indentation for text blocks
+- If the application should keep the new lines in the XML indentation (also if
+  the XML indentation isn't kept)
 
 #### Track number
 
@@ -58,6 +76,14 @@ it'll re-encode it to a JPEG. You can customize:
 
 - The maximum width and the maximum height
 - The JPEG quality
+
+### Sources
+
+PodcastDownloader will automatically save every RSS feed in the "Sources"
+section. Here you can click on each feed to show its title, or click the "X" to
+delete it. These sources are the ones used to download the new podcasts.
+
+In this section, you can also delete or export the URL history.
 
 ## Disclaimer
 

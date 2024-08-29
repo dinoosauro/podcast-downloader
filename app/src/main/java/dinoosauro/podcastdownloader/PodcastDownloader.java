@@ -107,6 +107,12 @@ public class PodcastDownloader extends Application {
          * @return the sanitized string
          */
         public static String nameSanitizer(String str) {
+            if (str.contains("\n")) { // Delete new lines, since they aren't allowed in file names. We'll also trim each line, so that we can delete XML indentation
+                String[] split = str.split("\n");
+                StringBuilder output = new StringBuilder();
+                for (int i = 0; i < split.length; i++) output.append(split[i].trim() + (split.length -1 == i ? "" : " ")); // Add the space for each line, excluding the last one
+                str = output.toString();
+            }
             return str.replace("<", "‹").replace(">", "›").replace(":", "∶").replace("\"", "″").replace("/", "∕").replace("\\", "∖").replace("|", "¦").replace("?", "¿").replace("*", "");
         }
 
@@ -123,6 +129,18 @@ public class PodcastDownloader extends Application {
             } catch (Exception ex) {
                 Toast.makeText(appContext, "Failed to stop Foreground Service", Toast.LENGTH_LONG).show();
             }
+        }
+
+        /**
+         * Get the suggested file extension from the passed URL
+         * @param url the URL to download
+         * @return the extension of the file of that URL
+         */
+        public static String getExtensionFromUrl(String url) {
+            String fileExtension = url.substring(url.lastIndexOf('/') + 1);
+            if (fileExtension.contains("?")) fileExtension = fileExtension.substring(0, fileExtension.indexOf("?"));
+            return fileExtension.substring(fileExtension.lastIndexOf("."));
+
         }
 
 
@@ -146,9 +164,6 @@ public class PodcastDownloader extends Application {
                 request.setTitle(currentPodcastInformation.title);
                 request.allowScanningByMediaScanner();
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
-                String fileExtension = currentPodcastInformation.url.substring(currentPodcastInformation.url.lastIndexOf('/') + 1);
-                if (fileExtension.contains("?")) fileExtension = fileExtension.substring(0, fileExtension.indexOf("?"));
-                fileExtension = fileExtension.substring(fileExtension.lastIndexOf("."));
                 File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 File podcastsGeneralDir = new File(downloadDir, "PodcastDownloader");
                 if (!podcastsGeneralDir.exists()) podcastsGeneralDir.mkdir();
@@ -163,6 +178,7 @@ public class PodcastDownloader extends Application {
                 } catch (IOException e) {
                     Toast.makeText(appContext, appContext.getResources().getString(R.string.failed_json_creation) + " " + currentPodcastInformation.title, Toast.LENGTH_LONG).show();
                 }
+                String fileExtension = getExtensionFromUrl(currentPodcastInformation.url);
                 String subPath = "PodcastDownloader/" + nameSanitizer(podcastInformation.title) + "/" + nameSanitizer(currentPodcastInformation.title + fileExtension);
                 request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, subPath);
                 DownloadManager manager = (DownloadManager) appContext.getSystemService(Context.DOWNLOAD_SERVICE);

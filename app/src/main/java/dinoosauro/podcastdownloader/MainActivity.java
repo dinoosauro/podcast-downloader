@@ -2,7 +2,6 @@ package dinoosauro.podcastdownloader;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
@@ -22,6 +21,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -29,67 +29,41 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.gson.Gson;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
 
 import org.jsoup.Jsoup;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Map;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
+import java.util.concurrent.atomic.AtomicBoolean;
+import dinoosauro.podcastdownloader.PodcastClasses.CheckDuplicates;
 import dinoosauro.podcastdownloader.PodcastClasses.GetAlbumArt;
+import dinoosauro.podcastdownloader.PodcastClasses.GetPodcastInformation;
 import dinoosauro.podcastdownloader.PodcastClasses.PodcastDownloadInformation;
 import dinoosauro.podcastdownloader.PodcastClasses.PodcastInformation;
-import dinoosauro.podcastdownloader.PodcastClasses.ShowItems;
+import dinoosauro.podcastdownloader.PodcastClasses.UrlStorage;
 import dinoosauro.podcastdownloader.UIHelper.CheckUpdates;
 import dinoosauro.podcastdownloader.UIHelper.ColorMenuIcons;
 import dinoosauro.podcastdownloader.UIHelper.DownloadUIManager;
+import dinoosauro.podcastdownloader.UIHelper.LoadingDialog;
 import dinoosauro.podcastdownloader.UIHelper.PodcastProgress;
 
 public class MainActivity extends AppCompatActivity {
-    /**
-     * From an Element, get the text content of an item, returning null if non-existent
-     * @param item the item to get the TextContent
-     * @return a String with the TextContent
-     */
-    String nullPlaceholder(Node item) {
-        if (item == null) return null;
-        return item.getTextContent();
-    }
+    private static AlertDialog downloadDialog = null;
 
     /**
-     * From a DownloadMangaer's URI, get the real path
+     * From a DownloadManager's URI, get the real path
      * @param context an Android context
      * @param uri the Uri fetched from the DownloadManager's event
      * @return a String with a valid path
@@ -119,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         CollapsingToolbarLayout collapsingToolbar = findViewById(R.id.collapsing_toolbar);
         collapsingToolbar.setTitle(getResources().getString(R.string.downloader));
+        PodcastDownloader.DownloadQueue.setContext(getApplicationContext()); // Add the global context to the PodcastDownloader class, so that it can be used when downloading podcasts
         DownloadUIManager.setLinearLayout(findViewById(R.id.downloadItemsContainer)); // Set that the default LinearLayout where the metadata information cards will be appended is the one in MainActivity
         PodcastProgress.setProgressBar(findViewById(R.id.progressBar)); // Set what progress bar should be used when an episode is added in the queue (or has finished downloading)
         if (Build.VERSION.SDK_INT <= 28) {
@@ -128,116 +103,59 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.POST_NOTIFICATIONS}, 0);
         }
+        findViewById(R.id.downloadNewEpisodes).setOnClickListener(view -> { // Show the Dialog where the user can choose how to download the new episodes of their favorite podcasts
+            SharedPreferences preferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
+            LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+            View layout = inflater.inflate(R.layout.download_multiple_files, null);
+            layout.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+            ));
+            layout.setVisibility(View.VISIBLE);
+            AtomicBoolean stopAtFirst = new AtomicBoolean(false); // If true, the script will break when a duplicate is found
+            ((MaterialSwitch) layout.findViewById(R.id.breakAtFirst)).setOnCheckedChangeListener((buttonView, checked) -> {
+                stopAtFirst.set(checked);
+            });
+            layout.findViewById(R.id.stopFileName).setOnClickListener(v -> { // Check if a file with the same name already exists to get if a file is a duplicate
+                new Thread(() -> {
+                    CheckDuplicates.UsingFileName(preferences, stopAtFirst.get(), new CheckDuplicates.EnqueueHandler() {
+                        @Override
+                        public void enqueue(PodcastInformation information) { // Use this to run the enqueueItem function in the main thread
+                            runOnUiThread(() -> PodcastDownloader.DownloadQueue.enqueueItem(information));
+                        }
+                    });
+                }).start();
+                downloadDialog.dismiss();
+            });
+            layout.findViewById(R.id.stopUrl).setOnClickListener(v -> { // Check if the URL has already been downloaded to get if a file is a duplicate
+                new Thread(() -> {
+                    CheckDuplicates.UsingURL(preferences, stopAtFirst.get(), getApplicationContext(), new CheckDuplicates.EnqueueHandler() {
+                        @Override
+                        public void enqueue(PodcastInformation information) {
+                            runOnUiThread(() -> PodcastDownloader.DownloadQueue.enqueueItem(information));
+                        }
+                    });
+                }).start();
+                downloadDialog.dismiss();
+            });
+            downloadDialog = new MaterialAlertDialogBuilder(MainActivity.this)
+                    .setView(layout)
+                    .show();
+        });
         findViewById(R.id.downloadButton).setOnClickListener(view -> {
             // Create a MaterialDialog that blocks user interaction until the RSS feed hasn't been fetched
-            MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(MainActivity.this);
-            dialog.setTitle(R.string.podcast_info);
-            ProgressBar progressBar = new ProgressBar(MainActivity.this);
-            progressBar.setIndeterminate(true);
-            progressBar.setPadding(ColorMenuIcons.getScalablePixels(15, getApplicationContext()), 0, ColorMenuIcons.getScalablePixels(15, getApplicationContext()), 0);
-            dialog.setView(progressBar);
-            dialog.setMessage(R.string.podcast_info_desc);
-            dialog.setCancelable(false);
+            MaterialAlertDialogBuilder dialog = LoadingDialog.build(MainActivity.this);
             AlertDialog dialogShown = dialog.show();
             Thread thread = new Thread(() -> {
-                try {
                 Editable urlText = ((TextInputEditText) findViewById(R.id.downloadUrl)).getText(); // Get the URL
                 if (urlText == null) return;
-                String finalUrl = urlText.toString().trim();
-                if (finalUrl.contains("https://antennapod.org") && finalUrl.contains("url=")) { // Parse AntennaPod URLs to get the RSS feed
-                    finalUrl = finalUrl.substring(finalUrl.indexOf("url=") + 4);
-                    if (finalUrl.contains("&")) finalUrl = finalUrl.substring(0, finalUrl.indexOf("&"));
-                    finalUrl = URLDecoder.decode(finalUrl, "utf-8");
-                }
-                List<ShowItems> optionList = new ArrayList<ShowItems>(); // The container of all the podcast items
-                    // Parse the XML
-                    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder builder = factory.newDocumentBuilder();
-                    Document document = builder.parse(finalUrl);
-                    SharedPreferences preferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
-                    if (preferences.getBoolean("WriteOutputXML", true)) {
-                        try {
-                            // Create folder and file
-                            File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "PodcastDownloader");
-                            folder.mkdir();
-                            String getPodcastTitle = nullPlaceholder(document.getElementsByTagName("title").item(0));
-                            File xmlFile = new File(folder, PodcastDownloader.DownloadQueue.nameSanitizer(getPodcastTitle != null ? getPodcastTitle : finalUrl) + " [" + PodcastDownloader.DownloadQueue.nameSanitizer((new Date()).toString()) + "].xml");
-                            xmlFile.createNewFile();
-                            FileOutputStream fos = new FileOutputStream(xmlFile);
-                            // Convert the Document to a String using the TransformerFactory. This might be rewritten later, since it would be more convenient to directly fetch the XML as a string and write it.
-                            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-                            Transformer transformer = transformerFactory.newTransformer();
-                            StringWriter stringWriter = new StringWriter();
-                            transformer.transform(new DOMSource(document), new StreamResult(stringWriter));
-                            fos.write(stringWriter.toString().getBytes());
-                            fos.close();
-                        } catch (Exception ex) {
-                            Snackbar.make(view, R.string.failed_xml_writing, BaseTransientBottomBar.LENGTH_LONG).show();
-                        }
-                    }
-                    document.getDocumentElement().normalize();
-                    NodeList items = document.getElementsByTagName("item");
-                    boolean shouldUseSuggestedTrack = preferences.getBoolean("UseSuggestedTrack", true); // If false, the suggested track from the RSS feed will be ignored
-                    int trackFallbackType = preferences.getInt("SuggestedTrackFallback", 0); // What the application should do if there isn't a suggested track from the RSS feed
-                    int trackFallbackStartFrom = preferences.getInt("SuggestedTrackStartFrom", 1); // From what number the numeration should tart
-                    int podcastCount = items.getLength();
-                    for (int i = 0; i < podcastCount; i++) {
-                        Element element = (Element) items.item(i);
-                        String author = nullPlaceholder(element.getElementsByTagName("itunes:author").item(0)); // We'll start by looking if there's an author field in the specific episode.
-                        if (author == null || author.trim().equals("")) author = nullPlaceholder(document.getElementsByTagName("itunes:author").item(0)); // If there's no author field in the specific episode, we'll use the one that's generally in the podcast.
-                        String podcastNumber = shouldUseSuggestedTrack ? nullPlaceholder(element.getElementsByTagName("itunes:episode").item(0)) : null;
-                        if (podcastNumber == null || podcastNumber.trim().equals("")) {
-                            switch(trackFallbackType) {
-                                case 1: // Start from the newest podcast
-                                    podcastNumber = String.valueOf(i + trackFallbackStartFrom);
-                                    break;
-                                case 2: // Start from the oldest podcast
-                                    podcastNumber = String.valueOf(podcastCount - i + trackFallbackStartFrom - 1);
-                                    break;
-                            }
-                        }
-                        optionList.add(new ShowItems(
-                                nullPlaceholder(element.getElementsByTagName("title").item(0)),
-                                nullPlaceholder(element.getElementsByTagName("description").item(0)),
-                                nullPlaceholder(element.getElementsByTagName("pubDate").item(0)),
-                                podcastNumber,
-                                author,
-                                element.getElementsByTagName("enclosure").item(0).getAttributes().getNamedItem("url").getNodeValue()
-                        ));
-                    }
-                    runOnUiThread(dialogShown::dismiss);
-                String image = null;
-                Element imgElement = ((Element) document.getElementsByTagName("image").item(0)); // Some podcasts (Megaphone) have the <image><url></url></image> tag for the album image. We'll try to get those tags.
-                if (imgElement != null) {
-                        imgElement = ((Element) document.getElementsByTagName("url").item(0));
-                        if (imgElement != null) image = imgElement.getTextContent();
-                } else { // We'll try using the standard itunes:image tag
-                    imgElement = ((Element) document.getElementsByTagName("itunes:image").item(0));
-                    if (imgElement != null) image = imgElement.getAttribute("href");
-                }
-                if (image != null) {
-                    image = image.replace("\n", "").trim(); // Remove unnecessary characters that might be in the URL
-                    // We complete the URL structure if necessary
-                    if (image.startsWith("/")) image = finalUrl.substring(0, finalUrl.indexOf("/", finalUrl.indexOf("://") + 3)) + image;
-                    if (image.startsWith("./")) image = finalUrl.substring(0, finalUrl.lastIndexOf("/")) + image.substring(1);
-                }
-                PodcastDownloader.setPodcastInformation(new PodcastInformation(nullPlaceholder(document.getElementsByTagName("title").item(0)), image, nullPlaceholder(document.getElementsByTagName("itunes:author").item(0)), optionList)); // We'll store the new items in the PodcastDownloader class.
+                PodcastInformation information = GetPodcastInformation.FromUrl(urlText.toString(), getSharedPreferences(getPackageName(), Context.MODE_PRIVATE), view);
+                if (information != null) {
+                    PodcastDownloader.setPodcastInformation(information); // We'll store the new items in the PodcastDownloader class.
                     Intent intent = new Intent(MainActivity.this, PodcastsItemsDownloader.class);
                     startActivity(intent);
-
-            } catch (MalformedURLException e) {
-                    Snackbar.make(view, R.string.malformedUrl, BaseTransientBottomBar.LENGTH_LONG).show();
-                    dialogShown.dismiss();
-            } catch (IOException e) {
-                    Snackbar.make(view, R.string.urlIOException, BaseTransientBottomBar.LENGTH_LONG).show();
-                    dialogShown.dismiss();
-            } catch (ParserConfigurationException e) {
-                    Snackbar.make(view, R.string.invalidXml, BaseTransientBottomBar.LENGTH_LONG).show();
-                    dialogShown.dismiss();
-                } catch (SAXException e) {
-                    Snackbar.make(view, R.string.invalidXml, BaseTransientBottomBar.LENGTH_LONG).show();
-                    dialogShown.dismiss();
                 }
+                runOnUiThread(dialogShown::dismiss);
             });
             thread.start();
         });
@@ -285,6 +203,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         if (realPath != null) {
                             File file = new File(realPath);
+                            if (currentPodcastInformation != null) UrlStorage.addDownloadedUrl(getApplicationContext(), currentPodcastInformation.items.get(0).url); // Add the URL in the history, so that further downloads can be avoided
                             if (currentPodcastInformation != null && file.getAbsolutePath().endsWith(".mp3") && getSharedPreferences(getPackageName(), Context.MODE_PRIVATE).getBoolean("MP3Metadata", true)) { // Add metadata to MP3 file
                                 try {
                                     Mp3File mp3File = new Mp3File(file);

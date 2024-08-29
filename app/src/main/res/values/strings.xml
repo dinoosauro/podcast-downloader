@@ -57,5 +57,21 @@
     <string name="failed_xml_writing">Failed XML writing in the PodcastDownloader folder. This won\'t impact podcast downloading.</string>
     <string name="downloads_settings">Downloads:</string>
     <string name="save_xml_file">Save the XML file in the PodcastDownloader directory</string>
+    <string name="select_not_downloaded_items">Select not downloaded episodes</string>
+    <string name="download_new_episodes">Download the new episodes</string>
+    <string name="download_new_episodes_desc">All the new episodes from the sources you\'ve stored will be downloaded.</string>
+    <string name="break_at_first">Stop downloading episodes at the first already-downloaded file</string>
+    <string name="stop_filename">Stop when a file with the same name is found</string>
+    <string name="stop_urlstorage">Stop when the same URL has already been downloaded</string>
+    <string name="sources">Sources:</string>
+    <string name="remove">Remove</string>
+    <string name="delete_url_history">Delete URL history</string>
+    <string name="export_url_history">Export URL history</string>
+    <string name="failed_url_export">An error occurred while exporting the URL list</string>
+    <string name="sources_desc">Every RSS feed downloaded with PodcastDownloader is added as a RSS source. Click on each URL to fetch the podcast title, or to the \"X\" to delete them. Finaly, you can also export the URL history (or delete it).</string>
+    <string name="open_source_rss">Open RSS source</string>
+    <string name="keep_indentation">Keep indentation of the XML file</string>
+    <string name="keep_line_break">Keep the line break, even if the XML indentation shouldn\'t be kept</string>
+    <string name="history_written">Written history file in PodcastDownloader directory</string>
 
 </resources>

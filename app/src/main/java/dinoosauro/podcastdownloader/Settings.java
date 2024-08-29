@@ -1,5 +1,10 @@
 package dinoosauro.podcastdownloader;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -11,12 +16,15 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -27,16 +35,29 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.net.URI;
+import org.jsoup.internal.StringUtil;
+import org.w3c.dom.Document;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
-import dinoosauro.podcastdownloader.databinding.PodcastTrackSettingsBinding;
+import dinoosauro.podcastdownloader.PodcastClasses.GetPodcastInformation;
+import dinoosauro.podcastdownloader.PodcastClasses.UrlStorage;
+import dinoosauro.podcastdownloader.UIHelper.LoadingDialog;
 
 public class Settings extends AppCompatActivity {
     public enum SettingsSave {
@@ -71,6 +92,8 @@ public class Settings extends AppCompatActivity {
             put((View) findViewById(R.id.mp3Metadata), new updateFields("MP3Metadata", SettingsSave.SAVE_AS_BOOLEAN, "1"));
             put((View) findViewById(R.id.htmlParsing), new updateFields("DecodeHTML", SettingsSave.SAVE_AS_BOOLEAN, "1"));
             put((View) findViewById(R.id.saveXmlFile), new updateFields("WriteOutputXML", SettingsSave.SAVE_AS_BOOLEAN, "1"));
+            put((View) findViewById(R.id.keepIndentation), new updateFields("KeepIndentation", SettingsSave.SAVE_AS_BOOLEAN, "0"));
+            put((View) findViewById(R.id.keepLineBreak), new updateFields("KeepLineBreak", SettingsSave.SAVE_AS_BOOLEAN, "0"));
         }};
         SharedPreferences preferences = this.getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         for (Map.Entry<View, updateFields> entry : updateValue.entrySet()) {
@@ -109,7 +132,7 @@ public class Settings extends AppCompatActivity {
             openSourceView.setWebViewClient(new WebViewClient() {
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         Intent intent = new Intent(Intent.ACTION_VIEW, request.getUrl());
                         view.getContext().startActivity(intent);
                     }
@@ -169,5 +192,81 @@ public class Settings extends AppCompatActivity {
                     .setView(layout)
                     .show();
         });
+        Set<String> sources = new HashSet<>(preferences.getStringSet("PodcastSources", new HashSet<>())); // Get all the podcast RSS feeds, so that they can be displayed in the "Sources" section
+        ViewGroup container = findViewById(R.id.sourcesContainer);
+        for (String sourceUrl : sources) { // Create a new chip with the URL
+                Chip chip = new Chip(this);
+                chip.setText(sourceUrl);
+                chip.setCloseIconVisible(true);
+                chip.setEllipsize(TextUtils.TruncateAt.START);
+                chip.setOnCloseIconClickListener(v -> { // Remove the source from the list
+                    sources.remove(sourceUrl);
+                    preferences.edit().putStringSet("PodcastSources", sources).apply();
+                    container.removeView(chip);
+                });
+                chip.setOnClickListener(v -> { // Create a new Dialog that shows the title name (and URL)
+                    AlertDialog dialog = LoadingDialog.build(Settings.this).show();
+                    new Thread(() -> {
+                        try {
+                            Document document = GetPodcastInformation.getDocumentFromUrl(GetPodcastInformation.getCorrectUrl(sourceUrl));
+                            runOnUiThread(() -> {
+                                dialog.dismiss();
+                                if (document != null) {
+                                    new MaterialAlertDialogBuilder(Settings.this)
+                                            .setTitle(GetPodcastInformation.nullPlaceholder(document.getElementsByTagName("title").item(0), preferences.getBoolean("KeepIndentation", false), preferences.getBoolean("KeepLineBreak", false)))
+                                            .setMessage(sourceUrl)
+                                            .setPositiveButton(R.string.open_source_rss, (dialog1, which) -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(sourceUrl))))
+                                            .show();
+                                }
+                            });
+                        } catch (Exception ignored) {
+                            dialog.dismiss();
+                        }
+                    }).start();
+                });
+                container.addView(chip);
+
+        }
+        findViewById(R.id.deleteUrls).setOnClickListener(view -> UrlStorage.removeUrls(this)); // Remove every URL from history
+        /**
+         * The ActivityResult called after the user has chosen where the file with the URL history should be written.
+         */
+        ActivityResultLauncher<Intent> writeFile = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), o -> {
+            if (o.getResultCode() == RESULT_OK) {
+                Intent data = o.getData();
+                if (data != null) WriteHistoryFile(getApplicationContext(), data.getData(), findViewById(R.id.exportUrls));
+            }
+        });
+        findViewById(R.id.exportUrls).setOnClickListener(view -> { // Export the history to a file (the location will be asked to the user)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) { //
+                writeFile.launch(new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain").putExtra(Intent.EXTRA_TITLE, "HistoryLinks.txt"));
+            } else { // No create document intent available. We'll write a file in the PodcastDownloader directory instead.
+                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "PodcastDownloader");
+                if (!file.exists()) file.mkdir();
+                File output = new File(file, "HistoryLinks [" + PodcastDownloader.DownloadQueue.nameSanitizer((new Date()).toString()) + "].txt");
+                if (output.exists()) output.delete();
+                try {
+                    output.createNewFile();
+                    WriteHistoryFile(getApplicationContext(), Uri.fromFile(output), view);
+                    Snackbar.make(view, R.string.history_written, Snackbar.LENGTH_LONG).show();
+                } catch (IOException e) {
+                    Snackbar.make(view, R.string.failed_url_export, Snackbar.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+    private static void WriteHistoryFile(Context context, Uri uri, View view) {
+        try { // Get the URLS and, if there are some, write them to the selected file
+            List<String> urls = UrlStorage.getDownloadedUrl(context);
+            if (urls == null) return;
+            OutputStream outputStream = context.getContentResolver().openOutputStream(uri);
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < urls.size(); i++) builder.append(urls.get(i)).append("\n");
+            outputStream.write(builder.toString().getBytes());
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Snackbar.make(view, R.string.failed_url_export, Snackbar.LENGTH_LONG).show();
+        }
     }
 }

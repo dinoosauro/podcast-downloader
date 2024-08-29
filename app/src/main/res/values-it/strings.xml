@@ -58,4 +58,20 @@
     <string name="failed_xml_writing">Fallita la scrittura dell\'XML nella cartella PodcastDownloader. Questo non influenzerà il download del podcast.</string>
     <string name="downloads_settings">Download:</string>
     <string name="save_xml_file">Salva il file XML nella directory PodcastDownloader</string>
+    <string name="select_not_downloaded_items">Seleziona gli episodi non scaricati</string>
+    <string name="download_new_episodes">Scarica i nuovi episodi</string>
+    <string name="download_new_episodes_desc">Verranno scaricati tutti i nuovi episodi dalle sorgenti che hai salvato.</string>
+    <string name="break_at_first">Smetti di scaricare gli episodi al primo file già scaricato</string>
+    <string name="stop_filename">Ferma quando un file con lo stesso nome esiste di già</string>
+    <string name="stop_urlstorage">Ferma quando è già stato scaricato lo stesso URL</string>
+    <string name="sources">Sorgenti:</string>
+    <string name="remove">Rimuovi</string>
+    <string name="delete_url_history">Elimina cronologia degli URL</string>
+    <string name="export_url_history">Esporta la cronologia degli URL</string>
+    <string name="failed_url_export">Si è verificato un errore durante l\'esportazione della lista degli URL</string>
+    <string name="sources_desc">Qualsiasi feed RSS scaricato con PodcastDownloader è aggiunto qui come una sorgente RSS. Clicca su qualsiasi URL per ottenere il titolo del podcast, oppure sulla \"X\" per eliminarli. Infine, puoi esportare la cronologia degli URL (oppure eliminarla).</string>
+    <string name="open_source_rss">Apri sorgente RSS</string>
+    <string name="keep_indentation">Mantieni l\'indentazione dell\'XML</string>
+    <string name="keep_line_break">Mantieni la nuova riga, anche se l\'indentazione dell\'XML non dovrebbe essere tenuta</string>
+    <string name="history_written">Scritto il file della cronologia nella cartella PodcastDownloader</string>
 </resources>
