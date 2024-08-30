@@ -94,6 +94,7 @@ public class Settings extends AppCompatActivity {
             put((View) findViewById(R.id.saveXmlFile), new updateFields("WriteOutputXML", SettingsSave.SAVE_AS_BOOLEAN, "1"));
             put((View) findViewById(R.id.keepIndentation), new updateFields("KeepIndentation", SettingsSave.SAVE_AS_BOOLEAN, "0"));
             put((View) findViewById(R.id.keepLineBreak), new updateFields("KeepLineBreak", SettingsSave.SAVE_AS_BOOLEAN, "0"));
+            put((View) findViewById(R.id.saveRssFeed), new updateFields("SaveRSSFeedUrl", SettingsSave.SAVE_AS_BOOLEAN, "1"));
         }};
         SharedPreferences preferences = this.getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         for (Map.Entry<View, updateFields> entry : updateValue.entrySet()) {
@@ -192,41 +193,17 @@ public class Settings extends AppCompatActivity {
                     .setView(layout)
                     .show();
         });
-        Set<String> sources = new HashSet<>(preferences.getStringSet("PodcastSources", new HashSet<>())); // Get all the podcast RSS feeds, so that they can be displayed in the "Sources" section
-        ViewGroup container = findViewById(R.id.sourcesContainer);
-        for (String sourceUrl : sources) { // Create a new chip with the URL
-                Chip chip = new Chip(this);
-                chip.setText(sourceUrl);
-                chip.setCloseIconVisible(true);
-                chip.setEllipsize(TextUtils.TruncateAt.START);
-                chip.setOnCloseIconClickListener(v -> { // Remove the source from the list
-                    sources.remove(sourceUrl);
-                    preferences.edit().putStringSet("PodcastSources", sources).apply();
-                    container.removeView(chip);
-                });
-                chip.setOnClickListener(v -> { // Create a new Dialog that shows the title name (and URL)
-                    AlertDialog dialog = LoadingDialog.build(Settings.this).show();
-                    new Thread(() -> {
-                        try {
-                            Document document = GetPodcastInformation.getDocumentFromUrl(GetPodcastInformation.getCorrectUrl(sourceUrl));
-                            runOnUiThread(() -> {
-                                dialog.dismiss();
-                                if (document != null) {
-                                    new MaterialAlertDialogBuilder(Settings.this)
-                                            .setTitle(GetPodcastInformation.nullPlaceholder(document.getElementsByTagName("title").item(0), preferences.getBoolean("KeepIndentation", false), preferences.getBoolean("KeepLineBreak", false)))
-                                            .setMessage(sourceUrl)
-                                            .setPositiveButton(R.string.open_source_rss, (dialog1, which) -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(sourceUrl))))
-                                            .show();
-                                }
-                            });
-                        } catch (Exception ignored) {
-                            dialog.dismiss();
-                        }
-                    }).start();
-                });
-                container.addView(chip);
-
+        for (String sourceUrl : preferences.getStringSet("PodcastSources", new HashSet<>())) { // Create a new chip with the URL by getting all the Podcast sources
+            CreateChip(sourceUrl, preferences, findViewById(R.id.sourcesContainer));
         }
+        findViewById(R.id.addSource).setOnClickListener(v -> { // Add the text in the textbox as a source
+            Set<String> sources = new HashSet<>(preferences.getStringSet("PodcastSources", new HashSet<>()));
+            Editable url = ((TextInputEditText) findViewById(R.id.sourceUrl)).getText();
+            if (url == null) return;
+            sources.add(url.toString());
+            preferences.edit().putStringSet("PodcastSources", sources).apply();
+            CreateChip(url.toString(), preferences, findViewById(R.id.sourcesContainer));
+        });
         findViewById(R.id.deleteUrls).setOnClickListener(view -> UrlStorage.removeUrls(this)); // Remove every URL from history
         /**
          * The ActivityResult called after the user has chosen where the file with the URL history should be written.
@@ -268,5 +245,46 @@ public class Settings extends AppCompatActivity {
             e.printStackTrace();
             Snackbar.make(view, R.string.failed_url_export, Snackbar.LENGTH_LONG).show();
         }
+    }
+
+    /**
+     * Create a new Chip with the Source URL. If clicked, a dialog with its title is shown
+     * @param sourceUrl the URL of the source
+     * @param preferences the SharedPreferences to use to delete the chip (if the user clicks on the close button)
+     * @param container the container where the Chip should be appended
+     */
+    private void CreateChip(String sourceUrl, SharedPreferences preferences, ViewGroup container) {
+        Chip chip = new Chip(this);
+        chip.setText(sourceUrl);
+        chip.setCloseIconVisible(true);
+        chip.setEllipsize(TextUtils.TruncateAt.START);
+        chip.setOnCloseIconClickListener(v -> { // Remove the source from the list
+            Set<String> sources = new HashSet<>(preferences.getStringSet("PodcastSources", new HashSet<>()));
+            sources.remove(sourceUrl);
+            preferences.edit().putStringSet("PodcastSources", sources).apply();
+            container.removeView(chip);
+        });
+        chip.setOnClickListener(v -> { // Create a new Dialog that shows the title name (and URL)
+            AlertDialog dialog = LoadingDialog.build(Settings.this).show();
+            new Thread(() -> {
+                try {
+                    Document document = GetPodcastInformation.getDocumentFromUrl(GetPodcastInformation.getCorrectUrl(sourceUrl));
+                    runOnUiThread(() -> {
+                        dialog.dismiss();
+                        if (document != null) {
+                            new MaterialAlertDialogBuilder(Settings.this)
+                                    .setTitle(GetPodcastInformation.nullPlaceholder(document.getElementsByTagName("title").item(0), preferences.getBoolean("KeepIndentation", false), preferences.getBoolean("KeepLineBreak", false)))
+                                    .setMessage(sourceUrl)
+                                    .setPositiveButton(R.string.open_source_rss, (dialog1, which) -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(sourceUrl))))
+                                    .setNegativeButton(R.string.delete, (dialog1, which) -> chip.performCloseIconClick())
+                                    .show();
+                        }
+                    });
+                } catch (Exception ignored) {
+                    dialog.dismiss();
+                }
+            }).start();
+        });
+        container.addView(chip);
     }
 }

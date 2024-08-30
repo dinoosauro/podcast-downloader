@@ -171,9 +171,11 @@ public class GetPodcastInformation {
                 if (image.startsWith("/")) image = finalUrl.substring(0, finalUrl.indexOf("/", finalUrl.indexOf("://") + 3)) + image;
                 if (image.startsWith("./")) image = finalUrl.substring(0, finalUrl.lastIndexOf("/")) + image.substring(1);
             }
-            Set<String> podcastSources = new HashSet<>(preferences.getStringSet("PodcastSources", new HashSet<>()));
-            podcastSources.add(finalUrl);
-            preferences.edit().putStringSet("PodcastSources", podcastSources).apply();
+            if (preferences.getBoolean("SaveRSSFeedUrl", true)) { // Save the URL in the Sources list
+                Set<String> podcastSources = new HashSet<>(preferences.getStringSet("PodcastSources", new HashSet<>()));
+                podcastSources.add(finalUrl);
+                preferences.edit().putStringSet("PodcastSources", podcastSources).apply();
+            }
             return new PodcastInformation(nullPlaceholder(document.getElementsByTagName("title").item(0), keepIndentation, shouldKeepLineBreak), image, nullPlaceholder(document.getElementsByTagName("itunes:author").item(0), keepIndentation, shouldKeepLineBreak), optionList);
         } catch (MalformedURLException e) {
             if (view != null) Snackbar.make(view, R.string.malformedUrl, BaseTransientBottomBar.LENGTH_LONG).show();

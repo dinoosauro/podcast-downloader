@@ -10,6 +10,9 @@
         <item name="android:textSize">16sp</item>
         <item name="android:textViewStyle">@style/TextStyle</item>
     </style>
+    <style name="settingsTitleDivider" parent="@style/TextAppearance.Material3.HeadlineMedium">
+        <item name="android:layout_marginTop">20sp</item>
+    </style>
     <style name="TextStyle" parent="MaterialAlertDialog.Material3.Body.Text">
     </style>
     <style name="MainTitle" parent="TextAppearance.Material3.HeadlineLarge">

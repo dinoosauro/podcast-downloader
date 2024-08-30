@@ -73,5 +73,9 @@
     <string name="keep_indentation">Keep indentation of the XML file</string>
     <string name="keep_line_break">Keep the line break, even if the XML indentation shouldn\'t be kept</string>
     <string name="history_written">Written history file in PodcastDownloader directory</string>
+    <string name="source_url">The source URL</string>
+    <string name="add">Add</string>
+    <string name="automatically_save_url">Automatically save the feed URL</string>
+    <string name="delete">Delete</string>
 
 </resources>

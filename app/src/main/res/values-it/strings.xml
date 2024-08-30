@@ -74,4 +74,8 @@
     <string name="keep_indentation">Mantieni l\'indentazione dell\'XML</string>
     <string name="keep_line_break">Mantieni la nuova riga, anche se l\'indentazione dell\'XML non dovrebbe essere tenuta</string>
     <string name="history_written">Scritto il file della cronologia nella cartella PodcastDownloader</string>
+    <string name="source_url">L\'URL della sorgente</string>
+    <string name="add">Aggiungi</string>
+    <string name="automatically_save_url">Salva automaicamente l\'URL del feed</string>
+    <string name="delete">Rimuovi</string>
 </resources>
