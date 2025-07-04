@@ -52,7 +52,7 @@
     <string name="toggle_everything">Gira tutto</string>
     <string name="selected_everything">Tutti gli episodi sono stati selezionati</string>
     <string name="selected_nothing">Rimossa la selezione di tutti gli episodi</string>
-    <string name="downloading_podcasts">Sto scaricando i podcast...</string>
+    <string name="downloading_podcasts">Sto scaricando i podcast…</string>
     <string name="downloading_podcasts_desc">Questa notifica scomparirà quando sarà finita l\'operazione.</string>
     <string name="download">Scarica</string>
     <string name="failed_xml_writing">Fallita la scrittura dell\'XML nella cartella PodcastDownloader. Questo non influenzerà il download del podcast.</string>
@@ -78,4 +78,5 @@
     <string name="add">Aggiungi</string>
     <string name="automatically_save_url">Salva automaicamente l\'URL del feed</string>
     <string name="delete">Rimuovi</string>
+    <string name="import_url_history">Importa la cronologia degli URL</string>
 </resources>

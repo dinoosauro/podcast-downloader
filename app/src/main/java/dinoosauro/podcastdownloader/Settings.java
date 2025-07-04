@@ -44,8 +44,12 @@ import com.google.android.material.textfield.TextInputEditText;
 import org.jsoup.internal.StringUtil;
 import org.w3c.dom.Document;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.HashMap;
@@ -231,7 +235,35 @@ public class Settings extends AppCompatActivity {
                 }
             }
         });
+
+        /**
+         * The ActivityResult that'll read the URL history file, and import them.
+         */
+        ActivityResultLauncher<Intent> readFile = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), o -> {
+            if (o.getResultCode() == RESULT_OK) {
+                Intent data = o.getData();
+                if (data != null) {
+                    try {
+                        InputStream inputStream = getContentResolver().openInputStream(data.getData());
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                        List<String> downloadedUrls = UrlStorage.getDownloadedUrl(Settings.this);
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            if (downloadedUrls == null || !downloadedUrls.contains(line)) UrlStorage.addDownloadedUrl(Settings.this, line); // Check that the link isn't already saved
+                        }
+                    } catch(IOException e) {
+                        Log.d("ReadError", e.toString());
+                    }
+                }
+            }
+        });
+
+        findViewById(R.id.importUrls).setOnClickListener(view -> {
+            readFile.launch(new Intent(Intent.ACTION_GET_CONTENT).setType("*/*"));
+        });
     }
+
+
     private static void WriteHistoryFile(Context context, Uri uri, View view) {
         try { // Get the URLS and, if there are some, write them to the selected file
             List<String> urls = UrlStorage.getDownloadedUrl(context);

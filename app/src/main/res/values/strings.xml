@@ -51,7 +51,7 @@
     <string name="toggle_everything">Toggle everything</string>
     <string name="selected_everything">All the episodes have been selected</string>
     <string name="selected_nothing">Cleared selection of all episodes</string>
-    <string name="downloading_podcasts">Downloading podcasts...</string>
+    <string name="downloading_podcasts">Downloading podcasts…</string>
     <string name="downloading_podcasts_desc">This notification will disappear when the operation will end</string>
     <string name="download">Download</string>
     <string name="failed_xml_writing">Failed XML writing in the PodcastDownloader folder. This won\'t impact podcast downloading.</string>
@@ -68,7 +68,7 @@
     <string name="delete_url_history">Delete URL history</string>
     <string name="export_url_history">Export URL history</string>
     <string name="failed_url_export">An error occurred while exporting the URL list</string>
-    <string name="sources_desc">Every RSS feed downloaded with PodcastDownloader is added as a RSS source. Click on each URL to fetch the podcast title, or to the \"X\" to delete them. Finaly, you can also export the URL history (or delete it).</string>
+    <string name="sources_desc">Every RSS feed downloaded with PodcastDownloader is added as a RSS source. Click on each URL to fetch the podcast title, or to the \"X\" to delete them. Finally, you can also export the URL history (or delete it).</string>
     <string name="open_source_rss">Open RSS source</string>
     <string name="keep_indentation">Keep indentation of the XML file</string>
     <string name="keep_line_break">Keep the line break, even if the XML indentation shouldn\'t be kept</string>
@@ -77,5 +77,6 @@
     <string name="add">Add</string>
     <string name="automatically_save_url">Automatically save the feed URL</string>
     <string name="delete">Delete</string>
+    <string name="import_url_history">Import URL history</string>
 
 </resources>
