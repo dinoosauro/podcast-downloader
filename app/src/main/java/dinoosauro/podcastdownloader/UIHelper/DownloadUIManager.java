@@ -144,42 +144,42 @@ public class DownloadUIManager {
                 PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
                 if (temp != null) temp.items.get(0).title = newText;
             }
-        }, "Episode title"));
+        }, innerLayout.getContext().getString(R.string.episode_title)));
         innerLayout.addView(createDataInformation(downloader.title, "baseline_podcasts_24", innerLayout.getContext(), new UpdateContent() {
             @Override
             public void updateLogic(String newText) {
                 PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
                 if (temp != null) temp.title = newText;
             }
-        }, "Show title"));
+        }, innerLayout.getContext().getString(R.string.show_title)));
         innerLayout.addView(createDataInformation(downloader.items.get(0).author, "baseline_person_24", linearLayout.getContext(), new UpdateContent() {
             @Override
             public void updateLogic(String newText) {
                 PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
                 if (temp != null) temp.items.get(0).author = newText;
             }
-        }, "Podcast author"));
+        }, innerLayout.getContext().getString(R.string.podcast_author)));
         innerLayout.addView(createDataInformation(downloader.items.get(0).description, "baseline_short_text_24", linearLayout.getContext(), new UpdateContent() {
             @Override
             public void updateLogic(String newText)  {
                 PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
                 if (temp != null) temp.items.get(0).description = newText;
             }
-        }, "Podcast description"));
+        }, innerLayout.getContext().getString(R.string.podcast_description)));
         innerLayout.addView(createDataInformation(downloader.items.get(0).episodeNumber, "baseline_numbers_24", linearLayout.getContext(), new UpdateContent() {
             @Override
             public void updateLogic(String newText) {
                 PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
                 if (temp != null) temp.items.get(0).episodeNumber = newText;
             }
-        }, "Episode number"));
+        }, innerLayout.getContext().getString(R.string.episode_number)));
         innerLayout.addView(createDataInformation(downloader.items.get(0).publishedDate, "baseline_calendar_month_24", linearLayout.getContext(), new UpdateContent() {
             @Override
             public void updateLogic(String newText) {
                 PodcastInformation temp = operationId == -1 ? downloader : PodcastDownloader.DownloadQueue.currentOperations.get(operationId);
                 if (temp != null) temp.items.get(0).publishedDate = newText;
             }
-        }, "Published date"));
+        }, innerLayout.getContext().getString(R.string.published_date)));
         LinearLayout linkView = createDataInformation(downloader.items.get(0).url, "baseline_link_24", linearLayout.getContext(), true, null, "URL");
         linkView.setOnClickListener(view -> {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(downloader.items.get(0).url));

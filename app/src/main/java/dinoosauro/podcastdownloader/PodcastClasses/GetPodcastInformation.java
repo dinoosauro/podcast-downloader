@@ -1,7 +1,9 @@
 package dinoosauro.podcastdownloader.PodcastClasses;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 
 import com.google.android.material.snackbar.BaseTransientBottomBar;
@@ -11,14 +13,18 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,12 +73,25 @@ public class GetPodcastInformation {
     /**
      * Get the Document of the parsed XML item
      * @param urlText the URL where the RSS feed is located
+     * @param userAgent the custom User Agent to use for this request.
      * @return the parsed Document
      */
-    public static Document getDocumentFromUrl(String urlText) throws ParserConfigurationException, IOException, SAXException {
+    public static Document getDocumentFromUrl(String urlText, String userAgent) throws ParserConfigurationException, IOException, SAXException {
         // Parse the XML
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
+        if (!userAgent.trim().isEmpty()) { // Add the custom user agent to the request
+            builder.setEntityResolver((publicId, systemId) -> {
+                if (systemId != null && systemId.startsWith("http")) {
+                    URL url = new URL(systemId);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestProperty("User-Agent", userAgent);
+                    InputStream inputStream = connection.getInputStream();
+                    return new InputSource(inputStream);
+                }
+                return null; // Default behavior for other cases
+            });
+        }
         return builder.parse(urlText);
     }
 
@@ -95,16 +114,20 @@ public class GetPodcastInformation {
     /**
      * Get the PodcastInformation from a RSS feed
      * @param urlText the original URL of the RSS feed
-     * @param preferences the SharedPreferences used to get, well, the preferences of the user
+     * @param context the Context used to get the SharedPreferences
      * @param view the View where Snackbars will be added
+     * @param shouldUseSuggestedTrack if, when elaborating the podcast track number, the value in the XML should be used if available.
+     * @param trackFallbackType a Integer that can be: 0 if the track number shouldn't be added in case there's no default podcast track number; 1: if the first element in the list should have the first track number; 2: if the first element in the list should have the last track number.
+     * @param trackFallbackStartFrom in case there isn't a suggested track number in the XML file, start the count from this number
      * @return the PodcastInformation object of the current RSS feed
      */
-    public static PodcastInformation FromUrl(String urlText, SharedPreferences preferences, View view) {
+    public static PodcastInformation FromUrl(String urlText, Context context, View view, boolean shouldUseSuggestedTrack, int trackFallbackType, int trackFallbackStartFrom) {
         try {
+            SharedPreferences preferences = context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);
             boolean keepIndentation = preferences.getBoolean("KeepIndentation", false);
             boolean shouldKeepLineBreak = preferences.getBoolean("KeepLineBreak", false);
             String finalUrl = getCorrectUrl(urlText);
-            Document document = getDocumentFromUrl(finalUrl);
+            Document document = getDocumentFromUrl(finalUrl, context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE).getString("UserAgent", ""));
             List<ShowItems> optionList = new ArrayList<ShowItems>(); // The container of all the podcast items
             if (preferences.getBoolean("WriteOutputXML", true)) {
                 try {
@@ -128,9 +151,6 @@ public class GetPodcastInformation {
             }
             document.getDocumentElement().normalize();
             NodeList items = document.getElementsByTagName("item");
-            boolean shouldUseSuggestedTrack = preferences.getBoolean("UseSuggestedTrack", true); // If false, the suggested track from the RSS feed will be ignored
-            int trackFallbackType = preferences.getInt("SuggestedTrackFallback", 0); // What the application should do if there isn't a suggested track from the RSS feed
-            int trackFallbackStartFrom = preferences.getInt("SuggestedTrackStartFrom", 1); // From what number the numeration should tart
             int podcastCount = items.getLength();
             for (int i = 0; i < podcastCount; i++) {
                 Element element = (Element) items.item(i);
@@ -172,6 +192,7 @@ public class GetPodcastInformation {
                 if (image.startsWith("./")) image = finalUrl.substring(0, finalUrl.lastIndexOf("/")) + image.substring(1);
             }
             if (preferences.getBoolean("SaveRSSFeedUrl", true)) { // Save the URL in the Sources list
+                UrlStorage.addDownloadedUrl(context, String.format("%s %s %s %s", finalUrl, shouldUseSuggestedTrack ? 1 : 0, trackFallbackType, trackFallbackStartFrom), true, true); // Update the XML link storage, since the track number options might have been changed from the last download.
                 Set<String> podcastSources = new HashSet<>(preferences.getStringSet("PodcastSources", new HashSet<>()));
                 podcastSources.add(finalUrl);
                 preferences.edit().putStringSet("PodcastSources", podcastSources).apply();
@@ -187,5 +208,15 @@ public class GetPodcastInformation {
             if (view != null) Snackbar.make(view, R.string.invalidXml, BaseTransientBottomBar.LENGTH_LONG).show();
         }
         return null;
+    }
+     /**
+     * Get the PodcastInformation from a RSS feed
+     * @param urlText the original URL of the RSS feed
+     * @param context the Context used to get the SharedPreferences
+     * @param view the View where Snackbars will be added
+     */
+    public static PodcastInformation FromUrl(String urlText, Context context, View view) {
+        SharedPreferences preferences = context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);
+        return FromUrl(urlText, context, view, preferences.getBoolean("UseSuggestedTrack", true),preferences.getInt("SuggestedTrackFallback", 0),preferences.getInt("SuggestedTrackStartFrom", 1));
     }
 }

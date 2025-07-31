@@ -85,19 +85,31 @@ public class DownloadContent {
      * @param url the webpage to download
      * @param output the File where the webpage will be saved
      */
-    public void downloadWebpage(String url, File output) {
+    public void downloadWebpage(String url, final File file, String userAgent) {
 
         int notificationId = new Random().nextInt();
         new Thread(() -> {
-            String fileName = output.getName();
+            String fileName = file.getName();
+            File output = file;
+            String path = output.getAbsolutePath();
+            String filePath = path.substring(0, path.lastIndexOf(".")); // Path of the file, without the extension
+            String extension = path.substring(path.lastIndexOf(("."))); // The extension, with the "." before
             try { // Connect to the URL
                 URL parsedUrl = new URL(url);
                 HttpURLConnection connection = (HttpURLConnection) parsedUrl.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(10000);
                 connection.setReadTimeout(60000);
+                connection.setInstanceFollowRedirects(true);
+                if (!userAgent.trim().isEmpty()) connection.setRequestProperty("User-Agent", userAgent); // Set custom user agent
                 int fileSize = connection.getContentLength();
-                output.createNewFile();
+                boolean fileCreated = output.createNewFile();
+                int i = 0;
+                while (!fileCreated) { // Make sure the file is created. Usually this fails if the file already exists, so we'll try to add a number between brackets to create a dupliacte one.
+                    i++;
+                    output = new File(String.format("%s (%s)%s", filePath, i, extension));
+                    fileCreated = output.createNewFile();
+                }
                 try (InputStream inputStream = connection.getInputStream();
                      FileOutputStream outputStream = new FileOutputStream(output);
                      BufferedInputStream bufferedInput = new BufferedInputStream(inputStream);

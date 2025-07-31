@@ -47,19 +47,20 @@ and how PodcastDownloader should look for duplicates. You have two options:
 
 In the settings, you can customize:
 
-### Concurrent downloads
+### Downloader settings:
 
 - The number of concurrent downloads (how many downloads can happen at the same
-  time)
-- If you want to save the XML file in the PodcastDownloader directory
+  time);
+- If you want to save the XML file in the PodcastDownloader directory;
+- The user agent.
 
 ### Metadata
 
-- If you want to add metadata to MP3 files
-- If the description should be parsed from HTML
-- If the application should keep the XML indentation for text blocks
+- If you want to add metadata to MP3 files;
+- If the description should be parsed from HTML;
+- If the application should keep the XML indentation for text blocks;
 - If the application should keep the new lines in the XML indentation (also if
-  the XML indentation isn't kept)
+  the XML indentation isn't kept).
 
 #### Track number
 
@@ -68,6 +69,8 @@ In the settings, you can customize:
 Additional settings are available for track number customization. Here you can
 choose if the suggested track number from the XML should be used, and what the
 app should do if the podcast track number is unknown.
+
+You'll also find a toggle that permits you to use the last track number options you've used to download a specific podcast for automatic downloads. Let's say that you have downloaded the `Podcast A`, whose file count started from `0`, and the `Podcast B`, whose file count started from `1`. Now you want to download the new episodes, so you click on the `Download the new episodes` button. If you have this toggle enabled, the app will keep in mind that the `Podcast A` count should start from `0`, but if you have this toggle disabled the app will always start the count from `1` (the last value used). It's suggested to keep this enabled so that you can have consistency between track numbers.
 
 ### Album Art
 

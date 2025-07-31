@@ -119,6 +119,9 @@ public class DownloadCallback {
                     MediaScannerConnection.scanFile(context, new String[]{file.getAbsolutePath()}, new String[]{"audio/*"}, null); // Scan the downloaded file
                 }
             }
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED && isSuccessful) { // Delete the notification since the file is ready
+                notificationManagerCompat.cancel(notificationId);
+            }
             ViewGroup[] destinationLayout = DownloadUIManager.operationContainer.get(downloadId);
             if (destinationLayout != null) {
                 context.runOnUiThread(() -> { // Start a scaling animation for deleting the element
@@ -131,9 +134,6 @@ public class DownloadCallback {
                     anim.setDuration(500);
                     for (ViewGroup view : destinationLayout) view.startAnimation(anim);
                 });
-                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED && isSuccessful) { // Delete the notification since the file is ready
-                    notificationManagerCompat.cancel(notificationId);
-                }
                     try {
                     Thread.sleep(500);
                     context.runOnUiThread(() -> {

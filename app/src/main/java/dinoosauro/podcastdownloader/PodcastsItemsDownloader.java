@@ -63,7 +63,6 @@ public class PodcastsItemsDownloader extends AppCompatActivity {
         information = PodcastDownloader.getPodcastInformation();
         findViewById(R.id.downloadItems).setOnClickListener(v -> callback());
         List<CheckBox> checkBoxes = new ArrayList<>();
-        List<String> downloadedUrls = UrlStorage.getDownloadedUrl(PodcastsItemsDownloader.this);
         if (information != null) {
             collapsingToolbar.setTitle(information.title);
             findViewById(R.id.toggleCheckbox).setOnClickListener(view -> {
@@ -86,7 +85,7 @@ public class PodcastsItemsDownloader extends AppCompatActivity {
                 TextView textView = new TextView(this);
                 textView.setText(item.title);
                 textView.setPadding(10, 0, 0, 8); // Add padding to the bottom so that the last line can be underlined (if the item hasn't been downloaded)
-                if (downloadedUrls == null || !downloadedUrls.contains(item.url)) textView.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
+                if (!UrlStorage.checkEntry(getApplicationContext(), false, item.url)) textView.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
                 textView.setOnClickListener(view -> { // Show all the podcast metadata
                     ScrollView dialogContainer = new ScrollView(this);
                     LinearLayout layout = new LinearLayout(this);

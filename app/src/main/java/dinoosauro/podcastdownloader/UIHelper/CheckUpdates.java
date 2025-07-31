@@ -2,6 +2,7 @@ package dinoosauro.podcastdownloader.UIHelper;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 
@@ -11,14 +12,16 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashSet;
 
+import dinoosauro.podcastdownloader.PodcastClasses.UrlStorage;
 import dinoosauro.podcastdownloader.R;
 
 public class CheckUpdates {
     /**
      * The current version of PodcastDownloader
      */
-    public static final String VERSION_NUMBER = "1.2.0";
+    public static final String VERSION_NUMBER = "1.3.0";
     /**
      * The latest version, fetched from GitHub
      */
@@ -79,5 +82,17 @@ public class CheckUpdates {
                                     .putString("AvoidVersionUpdate", suggestedVersion).apply()))
                     .show());
         });
+    }
+    /**
+     * Convert some options from older versions to the newer ones.
+     * @param context the Application Context
+     */
+    public static void migrate(Context context) {
+        SharedPreferences preferences = context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);
+        // Version 1.3.0: store downloaded URLs in another file, and save there also the podcast track number
+        for (String sourceUrl : preferences.getStringSet("PodcastSources", new HashSet<>())) {
+            UrlStorage.addDownloadedUrl(context, String.format("%s %s %s %s", sourceUrl, preferences.getBoolean("UseSuggestedTrack", true) ? 1 : 0 ,preferences.getInt("SuggestedTrackFallback", 0),preferences.getInt("SuggestedTrackStartFrom", 1)), true, true);
+        }
+        preferences.edit().remove("PodcastSources").apply();
     }
 }

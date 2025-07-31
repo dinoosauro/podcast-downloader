@@ -120,7 +120,7 @@ public class PodcastDownloader extends Application {
             if (str.contains("\n")) { // Delete new lines, since they aren't allowed in file names. We'll also trim each line, so that we can delete XML indentation
                 String[] split = str.split("\n");
                 StringBuilder output = new StringBuilder();
-                for (int i = 0; i < split.length; i++) output.append(split[i].trim() + (split.length -1 == i ? "" : " ")); // Add the space for each line, excluding the last one
+                for (int i = 0; i < split.length; i++) output.append(split[i].trim()).append(split.length - 1 == i ? "" : " "); // Add the space for each line, excluding the last one
                 str = output.toString();
             }
             return str.replace("<", "‹").replace(">", "›").replace(":", "∶").replace("\"", "″").replace("/", "∕").replace("\\", "∖").replace("|", "¦").replace("?", "¿").replace("*", "");
@@ -131,7 +131,7 @@ public class PodcastDownloader extends Application {
          */
         public static void disableServiceIfNecessary() {
             try {
-                if (currentOperations.size() == 0 && downloadPodcastInfoList.size() == 0 && ForegroundNotificationHelper.isServiceRunning(appContext)) {
+                if (currentOperations.isEmpty() && downloadPodcastInfoList.isEmpty() && ForegroundNotificationHelper.isServiceRunning(appContext)) {
                 Intent stopIntent = new Intent(appContext, ForegroundService.class);
                 stopIntent.setAction("STOP_FOREGROUND_SERVICE");
                 appContext.startService(stopIntent);
@@ -178,6 +178,7 @@ public class PodcastDownloader extends Application {
                 File outputFile = new File(singlePodcastDir, nameSanitizer(currentPodcastInformation.title + ".json"));
                 try {
                     if (outputFile.exists()) outputFile.delete();
+                    outputFile.createNewFile();
                     FileOutputStream fos = new FileOutputStream(outputFile);
                     fos.write(new Gson().toJson(podcastInformation).getBytes());
                     fos.close();
@@ -190,7 +191,7 @@ public class PodcastDownloader extends Application {
                 currentOperations.put(id, new PodcastDownloadInformation(podcastInformation, subPath));
                 // Start the download process
                 DownloadContent content = new DownloadContent(appContext, new DownloadCallback(context, id));
-                content.downloadWebpage(currentPodcastInformation.url, new File(singlePodcastDir, nameSanitizer(currentPodcastInformation.title + fileExtension)));
+                content.downloadWebpage(currentPodcastInformation.url, new File(singlePodcastDir, nameSanitizer(currentPodcastInformation.title + fileExtension)), appContext.getSharedPreferences(appContext.getPackageName(), Context.MODE_PRIVATE).getString("UserAgent", ""));
                 DownloadUIManager.addPodcastConversion(podcastInformation, id);
             }
         }

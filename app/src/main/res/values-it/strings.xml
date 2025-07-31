@@ -82,4 +82,14 @@
     <string name="postProcessingNotification">Elaborazione del file. Non dovrebbe richiedere tanto tempo.</string>
     <string name="downloaded">Scaricato:</string>
     <string name="downloadFailed">Download fallito</string>
+    <string name="episode_title">Titolo dell\'episodio</string>
+    <string name="show_title">Nome del podcast</string>
+    <string name="podcast_author">Autore del podcast</string>
+    <string name="podcast_description">Descrizione del podcast</string>
+    <string name="episode_number">Numero dell\'episodio</string>
+    <string name="published_date">Data di pubblicazione</string>
+    <string name="licenses">Licenze</string>
+    <string name="customUserAgent">User Agent personalizzato (non viene inviato se vuoto)</string>
+    <string name="user_agent_description">Se vuoi, puoi personalizzare l\'User Agent che viene invato quando si ottiene sia l\'XML che l\'audio. Se non sai cosa sia l\'User Agent, lascia vuoto questo campo.</string>
+    <string name="keep_track_downloader_settings">Quando si scaricano automaticamente i nuovi podcast, usa le impostazioni del numero della traccia che sono state usate per l\'ultimo download di quel podcast invece di quelle generali</string>
 </resources>

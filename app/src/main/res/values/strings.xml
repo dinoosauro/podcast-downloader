@@ -81,5 +81,15 @@
     <string name="postProcessingNotification">Post-processing file. This shouldn\'t take long.</string>
     <string name="downloaded">Downloaded:</string>
     <string name="downloadFailed">Download failed</string>
+    <string name="episode_title">Episode title</string>
+    <string name="show_title">Show title</string>
+    <string name="podcast_author">Podcast author</string>
+    <string name="podcast_description">Podcast description</string>
+    <string name="episode_number">Episode number</string>
+    <string name="published_date">Published date</string>
+    <string name="licenses">Licenses</string>
+    <string name="customUserAgent">Custom User Agent (none if blank)</string>
+    <string name="user_agent_description">If you want, you can customize the User Agent that is sent when fetching both the XML and the MP3 files. If you don\'t know what this is, leave it blank.</string>
+    <string name="keep_track_downloader_settings">When automatically downloading new podcasts, use the podcast track number settings that have been used for the last download of that podcast instead of the generic ones.</string>
 
 </resources>

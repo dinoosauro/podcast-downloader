@@ -2,69 +2,77 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:orientation="vertical"
-    android:padding="15sp"
-    android:layout_height="match_parent">
-        <LinearLayout
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="15sp">
+
+        <TextView
+            android:id="@+id/textView10"
+            style="@style/TextAppearance.Material3.HeadlineSmall"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12sp"
+            android:text="@string/track_number_options" />
 
-            <TextView
-                android:id="@+id/textView10"
-                style="@style/TextAppearance.Material3.HeadlineSmall"
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/useProvidedTrack"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/use_suggested_track_number"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/textView9"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/suggested_track_not_available" />
+
+        <RadioGroup
+            android:id="@+id/customTrackContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <RadioButton
+                android:id="@+id/radioButton0"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12sp"
-                android:text="@string/track_number_options" />
+                android:text="@string/no_track" />
 
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/useProvidedTrack"
+            <RadioButton
+                android:id="@+id/radioButton2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/use_suggested_track_number"
-                android:textSize="16sp"></com.google.android.material.materialswitch.MaterialSwitch>
+                android:text="@string/add_latest_track_number" />
 
-            <TextView
-                android:id="@+id/textView9"
+            <RadioButton
+                android:id="@+id/radioButton3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/suggested_track_not_available" />
+                android:text="@string/add_oldest_track_number" />
+        </RadioGroup>
 
-            <RadioGroup
-                android:id="@+id/customTrackContainer"
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/trackStartFrom"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content"
+                android:hint="@string/start_from" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-                <RadioButton
-                    android:id="@+id/radioButton0"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/no_track" />
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/keepPodcastSpecificTrack"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/keep_track_downloader_settings"
+            android:textSize="16sp" />
 
-                <RadioButton
-                    android:id="@+id/radioButton2"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/add_latest_track_number" />
-
-                <RadioButton
-                    android:id="@+id/radioButton3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/add_oldest_track_number" />
-            </RadioGroup>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/trackStartFrom"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/start_from" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-        </LinearLayout>
+    </LinearLayout>
 </ScrollView>

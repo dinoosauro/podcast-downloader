@@ -17,6 +17,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -90,8 +91,8 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.POST_NOTIFICATIONS}, 0);
         }
+        CheckUpdates.migrate(getApplicationContext());
         findViewById(R.id.downloadNewEpisodes).setOnClickListener(view -> { // Show the Dialog where the user can choose how to download the new episodes of their favorite podcasts
-            SharedPreferences preferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
             LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
             View layout = inflater.inflate(R.layout.download_multiple_files, null);
             layout.setLayoutParams(new LinearLayout.LayoutParams(
@@ -105,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
             });
             layout.findViewById(R.id.stopFileName).setOnClickListener(v -> { // Check if a file with the same name already exists to get if a file is a duplicate
                 new Thread(() -> {
-                    CheckDuplicates.UsingFileName(preferences, stopAtFirst.get(), new CheckDuplicates.EnqueueHandler() {
+                    CheckDuplicates.UsingFileName(getApplicationContext(), stopAtFirst.get(), new CheckDuplicates.EnqueueHandler() {
                         @Override
                         public void enqueue(PodcastInformation information) { // Use this to run the enqueueItem function in the main thread
                             runOnUiThread(() -> PodcastDownloader.DownloadQueue.enqueueItem(information, MainActivity.this));
@@ -116,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
             });
             layout.findViewById(R.id.stopUrl).setOnClickListener(v -> { // Check if the URL has already been downloaded to get if a file is a duplicate
                 new Thread(() -> {
-                    CheckDuplicates.UsingURL(preferences, stopAtFirst.get(), getApplicationContext(), new CheckDuplicates.EnqueueHandler() {
+                    CheckDuplicates.UsingURL(stopAtFirst.get(), getApplicationContext(), new CheckDuplicates.EnqueueHandler() {
                         @Override
                         public void enqueue(PodcastInformation information) {
                             runOnUiThread(() -> PodcastDownloader.DownloadQueue.enqueueItem(information, MainActivity.this));
@@ -160,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
             Thread thread = new Thread(() -> {
                 Editable urlText = ((TextInputEditText) findViewById(R.id.downloadUrl)).getText(); // Get the URL
                 if (urlText == null) return;
-                PodcastInformation information = GetPodcastInformation.FromUrl(urlText.toString(), getSharedPreferences(getPackageName(), Context.MODE_PRIVATE), view);
+                PodcastInformation information = GetPodcastInformation.FromUrl(urlText.toString(), getApplicationContext(), view);
                 if (information != null) {
                     PodcastDownloader.setPodcastInformation(information); // We'll store the new items in the PodcastDownloader class, since there's a risk that passing them as a extra intent string causes a TransactionTooLargeException
                     Intent intent = new Intent(MainActivity.this, PodcastsItemsDownloader.class);

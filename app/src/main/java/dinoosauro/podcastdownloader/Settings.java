@@ -51,6 +51,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -99,6 +101,7 @@ public class Settings extends AppCompatActivity {
             put((View) findViewById(R.id.keepIndentation), new updateFields("KeepIndentation", SettingsSave.SAVE_AS_BOOLEAN, "0"));
             put((View) findViewById(R.id.keepLineBreak), new updateFields("KeepLineBreak", SettingsSave.SAVE_AS_BOOLEAN, "0"));
             put((View) findViewById(R.id.saveRssFeed), new updateFields("SaveRSSFeedUrl", SettingsSave.SAVE_AS_BOOLEAN, "1"));
+            put((View) findViewById(R.id.userAgent), new updateFields("UserAgent", SettingsSave.SAVE_AS_STRING, ""));
         }};
         SharedPreferences preferences = this.getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         for (Map.Entry<View, updateFields> entry : updateValue.entrySet()) {
@@ -166,6 +169,9 @@ public class Settings extends AppCompatActivity {
             MaterialSwitch providedTrack = layout.findViewById(R.id.useProvidedTrack);
             providedTrack.setChecked(preferences.getBoolean("UseSuggestedTrack", true));
             providedTrack.setOnCheckedChangeListener((buttonView, isChecked) -> preferences.edit().putBoolean("UseSuggestedTrack", isChecked).apply());
+            MaterialSwitch keepSpecificTrackNumberSettings = layout.findViewById(R.id.keepPodcastSpecificTrack);
+            keepSpecificTrackNumberSettings.setChecked(preferences.getBoolean("UsePreviousTrackSettings", true));
+            keepSpecificTrackNumberSettings.setOnCheckedChangeListener((buttonView, isChecked) -> preferences.edit().putBoolean("UsePreviousTrackSettings", isChecked).apply());
             RadioGroup trackFallback = layout.findViewById(R.id.customTrackContainer);
             ((RadioButton) trackFallback.getChildAt(preferences.getInt("SuggestedTrackFallback", 0))).setChecked(true);
             trackFallback.setOnCheckedChangeListener((group, checkedId) -> preferences.edit().putInt("SuggestedTrackFallback", trackFallback.indexOfChild(layout.findViewById(checkedId))).apply());
@@ -197,15 +203,25 @@ public class Settings extends AppCompatActivity {
                     .setView(layout)
                     .show();
         });
-        for (String sourceUrl : preferences.getStringSet("PodcastSources", new HashSet<>())) { // Create a new chip with the URL by getting all the Podcast sources
-            CreateChip(sourceUrl, preferences, findViewById(R.id.sourcesContainer));
+        // Create a new chip with the URL by getting all the Podcast sources
+        BufferedReader xmlSources = UrlStorage.getDownloadBuffer(getApplicationContext(), true);
+        if (xmlSources != null) {
+            String sourceUrl;
+            try {
+                while ((sourceUrl = xmlSources.readLine()) != null) { 
+                    Log.d("AvailableItems", sourceUrl);
+                    String[] source = sourceUrl.split(" ");
+                    if (source.length > 3)
+                        CreateChip(String.join(" ", Arrays.copyOf(source, source.length - 3)), preferences, findViewById(R.id.sourcesContainer));
+                }
+            } catch (Exception ignored) {
+
+            }
         }
         findViewById(R.id.addSource).setOnClickListener(v -> { // Add the text in the textbox as a source
-            Set<String> sources = new HashSet<>(preferences.getStringSet("PodcastSources", new HashSet<>()));
             Editable url = ((TextInputEditText) findViewById(R.id.sourceUrl)).getText();
             if (url == null) return;
-            sources.add(url.toString());
-            preferences.edit().putStringSet("PodcastSources", sources).apply();
+            UrlStorage.addDownloadedUrl(getApplicationContext(), String.format("%s %s %s %s", url, preferences.getBoolean("UseSuggestedTrack", true) ? 1 : 0, preferences.getInt("SuggestedTrackFallback", 0), preferences.getInt("SuggestedTrackStartFrom", 1)), true, true); // We need to add also the current podcast track number options, since, if files are automatically downloaded, the user can choose to download the new podcasts by keeping the previous track number settings.
             CreateChip(url.toString(), preferences, findViewById(R.id.sourcesContainer));
         });
         findViewById(R.id.deleteUrls).setOnClickListener(view -> UrlStorage.removeUrls(this)); // Remove every URL from history
@@ -246,10 +262,9 @@ public class Settings extends AppCompatActivity {
                     try {
                         InputStream inputStream = getContentResolver().openInputStream(data.getData());
                         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                        List<String> downloadedUrls = UrlStorage.getDownloadedUrl(Settings.this);
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (downloadedUrls == null || !downloadedUrls.contains(line)) UrlStorage.addDownloadedUrl(Settings.this, line); // Check that the link isn't already saved
+                            if (!UrlStorage.checkEntry(getApplicationContext(), false, line)) UrlStorage.addDownloadedUrl(Settings.this, line); // Check that the link isn't already saved
                         }
                     } catch(IOException e) {
                         Log.d("ReadError", e.toString());
@@ -266,12 +281,11 @@ public class Settings extends AppCompatActivity {
 
     private static void WriteHistoryFile(Context context, Uri uri, View view) {
         try { // Get the URLS and, if there are some, write them to the selected file
-            List<String> urls = UrlStorage.getDownloadedUrl(context);
+            BufferedReader urls = UrlStorage.getDownloadBuffer(context, false);
             if (urls == null) return;
             OutputStream outputStream = context.getContentResolver().openOutputStream(uri);
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < urls.size(); i++) builder.append(urls.get(i)).append("\n");
-            outputStream.write(builder.toString().getBytes());
+            String write;
+            while ((write = urls.readLine()) != null) outputStream.write((write + "\n").getBytes());
             outputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -300,7 +314,7 @@ public class Settings extends AppCompatActivity {
             AlertDialog dialog = LoadingDialog.build(Settings.this).show();
             new Thread(() -> {
                 try {
-                    Document document = GetPodcastInformation.getDocumentFromUrl(GetPodcastInformation.getCorrectUrl(sourceUrl));
+                    Document document = GetPodcastInformation.getDocumentFromUrl(GetPodcastInformation.getCorrectUrl(sourceUrl), preferences.getString("UserAgent", ""));
                     runOnUiThread(() -> {
                         dialog.dismiss();
                         if (document != null) {
