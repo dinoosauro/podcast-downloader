@@ -78,5 +78,8 @@
     <string name="automatically_save_url">Automatically save the feed URL</string>
     <string name="delete">Delete</string>
     <string name="import_url_history">Import URL history</string>
+    <string name="postProcessingNotification">Post-processing file. This shouldn\'t take long.</string>
+    <string name="downloaded">Downloaded:</string>
+    <string name="downloadFailed">Download failed</string>
 
 </resources>

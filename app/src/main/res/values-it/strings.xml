@@ -79,4 +79,7 @@
     <string name="automatically_save_url">Salva automaicamente l\'URL del feed</string>
     <string name="delete">Rimuovi</string>
     <string name="import_url_history">Importa la cronologia degli URL</string>
+    <string name="postProcessingNotification">Elaborazione del file. Non dovrebbe richiedere tanto tempo.</string>
+    <string name="downloaded">Scaricato:</string>
+    <string name="downloadFailed">Download fallito</string>
 </resources>

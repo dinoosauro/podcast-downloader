@@ -1,11 +1,11 @@
 package dinoosauro.podcastdownloader;
 
+import android.app.Activity;
 import android.app.Application;
-import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.material.color.DynamicColors;
@@ -18,8 +18,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import dinoosauro.podcastdownloader.ForegroundService.ForegroundService;
+import dinoosauro.podcastdownloader.PodcastClasses.DownloadCallback;
+import dinoosauro.podcastdownloader.PodcastClasses.DownloadContent;
 import dinoosauro.podcastdownloader.PodcastClasses.PodcastDownloadInformation;
 import dinoosauro.podcastdownloader.PodcastClasses.PodcastInformation;
 import dinoosauro.podcastdownloader.PodcastClasses.ShowItems;
@@ -53,6 +56,13 @@ public class PodcastDownloader extends Application {
      */
     public static PodcastInformation getPodcastInformation() {
         return currentPodcastInfo;
+    }
+
+    /**
+     * Delete the PodcastInformation ArrayList
+     */
+    public static void clearPodcastInformation() {
+        currentPodcastInfo = null;
     }
 
     /**
@@ -146,8 +156,9 @@ public class PodcastDownloader extends Application {
 
         /**
          * Start the download of the next file
+         * @param context the Activity context where the card with all the details of the download will be appended
          */
-        public static void startDownload() {
+        public static void startDownload(Activity context) {
             PodcastInformation podcastInformation = shift();
             if (podcastInformation != null) {
                 try {
@@ -159,16 +170,11 @@ public class PodcastDownloader extends Application {
                     Toast.makeText(appContext, "Failed to start Foreground Service. Download experience might be unreliable.", Toast.LENGTH_LONG).show();
                 }
                 ShowItems currentPodcastInformation = podcastInformation.items.get(0);
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(currentPodcastInformation.url));
-                request.setDescription(currentPodcastInformation.description);
-                request.setTitle(currentPodcastInformation.title);
-                request.allowScanningByMediaScanner();
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
                 File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 File podcastsGeneralDir = new File(downloadDir, "PodcastDownloader");
                 if (!podcastsGeneralDir.exists()) podcastsGeneralDir.mkdir();
                 File singlePodcastDir = new File (podcastsGeneralDir, nameSanitizer(podcastInformation.title));
-                if (!podcastsGeneralDir.exists()) singlePodcastDir.mkdir();
+                if (!singlePodcastDir.exists()) singlePodcastDir.mkdir();
                 File outputFile = new File(singlePodcastDir, nameSanitizer(currentPodcastInformation.title + ".json"));
                 try {
                     if (outputFile.exists()) outputFile.delete();
@@ -180,10 +186,11 @@ public class PodcastDownloader extends Application {
                 }
                 String fileExtension = getExtensionFromUrl(currentPodcastInformation.url);
                 String subPath = "PodcastDownloader/" + nameSanitizer(podcastInformation.title) + "/" + nameSanitizer(currentPodcastInformation.title + fileExtension);
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, subPath);
-                DownloadManager manager = (DownloadManager) appContext.getSystemService(Context.DOWNLOAD_SERVICE);
-                long id = manager.enqueue(request);
+                long id = new Random().nextLong();
                 currentOperations.put(id, new PodcastDownloadInformation(podcastInformation, subPath));
+                // Start the download process
+                DownloadContent content = new DownloadContent(appContext, new DownloadCallback(context, id));
+                content.downloadWebpage(currentPodcastInformation.url, new File(singlePodcastDir, nameSanitizer(currentPodcastInformation.title + fileExtension)));
                 DownloadUIManager.addPodcastConversion(podcastInformation, id);
             }
         }
@@ -191,11 +198,12 @@ public class PodcastDownloader extends Application {
         /**
          * Enqueue an item for downloading
          * @param podcastInformation the PodcastInformation of that item
+         * @param activity the Activity that'll be used to update the "DOM" after the conversion
          */
-        public static void enqueueItem(PodcastInformation podcastInformation) {
+        public static void enqueueItem(PodcastInformation podcastInformation, Activity activity) {
             downloadPodcastInfoList.add(podcastInformation);
             PodcastProgress.updateMaximum(1);
-            if (currentOperations.size() < appContext.getSharedPreferences(appContext.getPackageName(), Context.MODE_PRIVATE).getInt("ConcurrentDownloads", 3)) startDownload();
+            if (currentOperations.size() < appContext.getSharedPreferences(appContext.getPackageName(), Context.MODE_PRIVATE).getInt("ConcurrentDownloads", 3)) startDownload(activity);
         }
     }
 }

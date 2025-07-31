@@ -39,19 +39,17 @@ public class PodcastsItemsDownloader extends AppCompatActivity {
      */
     PodcastInformation information;
     /**
-     * The list of items to download
+     * A list of the items to download. Their position in the `information` array is stored.
      */
-    List<ShowItems> downloadItems = new ArrayList<>();
+    ArrayList<Integer> downloadItems = new ArrayList<>();
 
     /**
-     * Send the selected items to download and close the activity
+     * Send the selected items to the MainActivity and close the activity
      */
     private void callback() {
-        for (ShowItems downloadItem : downloadItems) {
-            ArrayList<ShowItems> items = new ArrayList<>();
-            items.add(downloadItem); // A new PodcastInformation object must be created for each podcast episode. The ShowItems list will include only one item (the current episode)
-            PodcastDownloader.DownloadQueue.enqueueItem(new PodcastInformation(information.title, information.image, information.author, items));
-        }
+        Intent result = new Intent();
+        result.putIntegerArrayListExtra("chosenPodcasts", downloadItems);
+        setResult(RESULT_OK, result);
         finish();
     }
     @Override
@@ -73,13 +71,15 @@ public class PodcastsItemsDownloader extends AppCompatActivity {
                     for (CheckBox check : checkBoxes) check.setChecked(shouldBeChecked);
                 Snackbar.make(linearLayout, shouldBeChecked ? R.string.selected_everything : R.string.selected_nothing, Snackbar.LENGTH_LONG).show();
             });
-            for (ShowItems item : information.items) {
+            for (int i = 0; i < information.items.size(); i++) {
+                ShowItems item = information.items.get(i);
                 LinearLayout container = new LinearLayout(this);
                 container.setOrientation(LinearLayout.HORIZONTAL);
                 // Create checkbox
                 CheckBox checked = new CheckBox(this);
+                int finalI = i;
                 checked.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                    if (isChecked) downloadItems.add(item); else downloadItems.remove(item);
+                    if (isChecked) downloadItems.add(finalI); else downloadItems.remove((Integer) finalI);
                 });
                 checkBoxes.add(checked);
                 // Create title text

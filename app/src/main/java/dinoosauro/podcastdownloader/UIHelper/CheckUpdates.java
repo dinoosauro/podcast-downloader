@@ -18,7 +18,7 @@ public class CheckUpdates {
     /**
      * The current version of PodcastDownloader
      */
-    public static final String VERSION_NUMBER = "1.1.2";
+    public static final String VERSION_NUMBER = "1.2.0";
     /**
      * The latest version, fetched from GitHub
      */
