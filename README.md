@@ -49,6 +49,8 @@ In the settings, you can customize:
 
 ### Downloader settings:
 
+- The output download folder;
+- If you want to save a JSON file with all the metadata fetched of the downloaded episodes;
 - The number of concurrent downloads (how many downloads can happen at the same
   time);
 - If you want to save the XML file in the PodcastDownloader directory;

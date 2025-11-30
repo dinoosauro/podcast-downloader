@@ -92,4 +92,10 @@
     <string name="customUserAgent">User Agent personalizzato (non viene inviato se vuoto)</string>
     <string name="user_agent_description">Se vuoi, puoi personalizzare l\'User Agent che viene invato quando si ottiene sia l\'XML che l\'audio. Se non sai cosa sia l\'User Agent, lascia vuoto questo campo.</string>
     <string name="keep_track_downloader_settings">Quando si scaricano automaticamente i nuovi podcast, usa le impostazioni del numero della traccia che sono state usate per l\'ultimo download di quel podcast invece di quelle generali</string>
+    <string name="change_downloads_folder">Cambia la cartella dei download</string>
+    <string name="create_show_dir">Crea una sottocartella per ogni show</string>
+    <string name="save_json_file">Salva un file JSON con tutti i metadati ottenuti di ogni singolo episodio scaricato</string>
+    <string name="failed_file_copy">Impossibile copiare il file nell\'archiviazione esterna. Questo episodio non verrà salvato sul dispositivo.</string>
+    <string name="pick_dir_prompt">Selezionare la cartella di destinazione predefinita</string>
+    <string name="empty_cache">Svuota la cache</string>
 </resources>

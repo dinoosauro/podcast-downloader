@@ -26,6 +26,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -45,32 +46,11 @@ import dinoosauro.podcastdownloader.UIHelper.CheckUpdates;
 import dinoosauro.podcastdownloader.UIHelper.ColorMenuIcons;
 import dinoosauro.podcastdownloader.UIHelper.DownloadUIManager;
 import dinoosauro.podcastdownloader.UIHelper.LoadingDialog;
+import dinoosauro.podcastdownloader.UIHelper.PickPodcastFolder;
 import dinoosauro.podcastdownloader.UIHelper.PodcastProgress;
 
 public class MainActivity extends AppCompatActivity {
     private static AlertDialog downloadDialog = null;
-
-    /**
-     * From a DownloadManager's URI, get the real path
-     * @param context an Android context
-     * @param uri the Uri fetched from the DownloadManager's event
-     * @return a String with a valid path
-     */
-    public String getRealPathFromURI(Context context, Uri uri) {
-        if (uri == null) return null;
-        String result = null;
-        Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-                if (idx != -1) {
-                    result = cursor.getString(idx);
-                }
-            }
-            cursor.close();
-        }
-        return result;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,10 +64,7 @@ public class MainActivity extends AppCompatActivity {
         PodcastDownloader.DownloadQueue.setContext(getApplicationContext()); // Add the global context to the PodcastDownloader class, so that it can be used when downloading podcasts
         DownloadUIManager.setLinearLayout(findViewById(R.id.downloadItemsContainer)); // Set that the default LinearLayout where the metadata information cards will be appended is the one in MainActivity
         PodcastProgress.setProgressBar(findViewById(R.id.progressBar)); // Set what progress bar should be used when an episode is added in the queue (or has finished downloading)
-        if (Build.VERSION.SDK_INT <= 28) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
-        } else if (Build.VERSION.SDK_INT >= 33) {
+        if (Build.VERSION.SDK_INT >= 33) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.POST_NOTIFICATIONS}, 0);
         }
@@ -154,7 +131,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        ActivityResultLauncher<Intent> getOutputFolder = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), o -> {
+            if (PickPodcastFolder.updateStorage(o, getApplicationContext()) != null) { // Successful storage update
+                findViewById(R.id.downloadButton).performClick();
+            }
+        });
         findViewById(R.id.downloadButton).setOnClickListener(view -> {
+            if (getSharedPreferences(getPackageName(), Context.MODE_PRIVATE).getString("DownloadFolder", null) == null) { // Ask the user to pick the output folder for the files
+                Toast.makeText(getApplicationContext(), getResources().getString(R.string.pick_dir_prompt), Toast.LENGTH_LONG).show();
+                getOutputFolder.launch(PickPodcastFolder.getIntent());
+                return;
+            }
             // Create a MaterialDialog that blocks user interaction until the RSS feed hasn't been fetched
             MaterialAlertDialogBuilder dialog = LoadingDialog.build(MainActivity.this);
             AlertDialog dialogShown = dialog.show();

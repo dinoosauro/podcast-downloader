@@ -4,9 +4,14 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
+
+import androidx.documentfile.provider.DocumentFile;
 
 import com.google.android.material.color.DynamicColors;
 import com.google.gson.Gson;
@@ -14,11 +19,13 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import dinoosauro.podcastdownloader.ForegroundService.ForegroundService;
 import dinoosauro.podcastdownloader.PodcastClasses.DownloadCallback;
@@ -170,20 +177,37 @@ public class PodcastDownloader extends Application {
                     Toast.makeText(appContext, "Failed to start Foreground Service. Download experience might be unreliable.", Toast.LENGTH_LONG).show();
                 }
                 ShowItems currentPodcastInformation = podcastInformation.items.get(0);
-                File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                File podcastsGeneralDir = new File(downloadDir, "PodcastDownloader");
-                if (!podcastsGeneralDir.exists()) podcastsGeneralDir.mkdir();
-                File singlePodcastDir = new File (podcastsGeneralDir, nameSanitizer(podcastInformation.title));
-                if (!singlePodcastDir.exists()) singlePodcastDir.mkdir();
-                File outputFile = new File(singlePodcastDir, nameSanitizer(currentPodcastInformation.title + ".json"));
-                try {
-                    if (outputFile.exists()) outputFile.delete();
-                    outputFile.createNewFile();
-                    FileOutputStream fos = new FileOutputStream(outputFile);
-                    fos.write(new Gson().toJson(podcastInformation).getBytes());
-                    fos.close();
-                } catch (IOException e) {
-                    Toast.makeText(appContext, appContext.getResources().getString(R.string.failed_json_creation) + " " + currentPodcastInformation.title, Toast.LENGTH_LONG).show();
+                SharedPreferences preferences = appContext.getSharedPreferences(appContext.getPackageName(), Context.MODE_PRIVATE);
+                String folderString = preferences.getString("DownloadFolder", null);
+                if (folderString == null) {
+                    Toast.makeText(context, context.getResources().getString(R.string.pick_dir_prompt), Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Uri folderUri = Uri.parse(folderString);
+                DocumentFile pickedDir = DocumentFile.fromTreeUri(context, folderUri);
+                if (preferences.getBoolean("CreateShowSubdirectory", true)) {
+                    String podcastName = nameSanitizer(podcastInformation.title);
+                    // We'll now iterate over all files/directories in the folder to find if a folder with the same name exists
+                    boolean foundFolder = false;
+                    for (DocumentFile file : pickedDir.listFiles()) {
+                        if (file.isDirectory() && file.getName() != null && file.getName().equals(podcastName)) {
+                            pickedDir = file;
+                            foundFolder = true;
+                            break;
+                        }
+                    }
+                    // Otherwise, we'll create the new show folder.
+                    if (!foundFolder) pickedDir = pickedDir.createDirectory(nameSanitizer(podcastInformation.title));
+                }
+                if (preferences.getBoolean("CreateJsonFile", true)) {
+                    try {
+                        DocumentFile outputFile = pickedDir.createFile("application/json", nameSanitizer(currentPodcastInformation.title));
+                        OutputStream fos = appContext.getContentResolver().openOutputStream(outputFile.getUri());
+                        fos.write(new Gson().toJson(podcastInformation).getBytes());
+                        fos.close();
+                    } catch (IOException e) {
+                        Toast.makeText(appContext, appContext.getResources().getString(R.string.failed_json_creation) + " " + currentPodcastInformation.title, Toast.LENGTH_LONG).show();
+                    }
                 }
                 String fileExtension = getExtensionFromUrl(currentPodcastInformation.url);
                 String subPath = "PodcastDownloader/" + nameSanitizer(podcastInformation.title) + "/" + nameSanitizer(currentPodcastInformation.title + fileExtension);
@@ -191,7 +215,12 @@ public class PodcastDownloader extends Application {
                 currentOperations.put(id, new PodcastDownloadInformation(podcastInformation, subPath));
                 // Start the download process
                 DownloadContent content = new DownloadContent(appContext, new DownloadCallback(context, id));
-                content.downloadWebpage(currentPodcastInformation.url, new File(singlePodcastDir, nameSanitizer(currentPodcastInformation.title + fileExtension)), appContext.getSharedPreferences(appContext.getPackageName(), Context.MODE_PRIVATE).getString("UserAgent", ""));
+                // We'll now create a private file where the audio file will be downloaded. We'll later move this file in a public DocumentFile, when everything else has been completed. We unfortunately need to do this since the library used for MP3 files allows editing files only by providing their file path.
+                File tempFolder = new File(context.getFilesDir(), "TempFiles");
+                if (!tempFolder.exists()) tempFolder.mkdir();
+                File file = new File(tempFolder, UUID.randomUUID().toString() + fileExtension);
+                String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension.substring(1));
+                content.downloadWebpage(currentPodcastInformation.url, file, appContext.getSharedPreferences(appContext.getPackageName(), Context.MODE_PRIVATE).getString("UserAgent", ""), pickedDir.createFile(mimeType == null ? "application/octet-stream" : mimeType, nameSanitizer(currentPodcastInformation.title) + (mimeType == null ? fileExtension : "")));
                 DownloadUIManager.addPodcastConversion(podcastInformation, id);
             }
         }

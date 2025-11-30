@@ -13,13 +13,16 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationChannelCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.documentfile.provider.DocumentFile;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Random;
@@ -83,13 +86,15 @@ public class DownloadContent {
     /**
      * Download a webpage (in this case, audio files) and save it in a File
      * @param url the webpage to download
-     * @param output the File where the webpage will be saved
+     * @param file the File where the webpage will be saved
+     * @param userAgent the User Agent header used to send the request to the server
+     * @param outputFile the DocumentFile of the output file in the external storage. After the file has been downloaded, and metadata have been added, the output file will be copied in this DocumentFile (and the source file will be deleted)
      */
-    public void downloadWebpage(String url, final File file, String userAgent) {
+    public void downloadWebpage(String url, final File file, String userAgent, DocumentFile outputFile) {
 
         int notificationId = new Random().nextInt();
         new Thread(() -> {
-            String fileName = file.getName();
+            String fileName = outputFile.getName();
             File output = file;
             String path = output.getAbsolutePath();
             String filePath = path.substring(0, path.lastIndexOf(".")); // Path of the file, without the extension
@@ -163,7 +168,7 @@ public class DownloadContent {
                             .setAutoCancel(true)
                             .setSilent(true);
                     notificationManagerCompat.notify(notificationId, builder.build());
-                    callback.RunCallback(output, notificationId, notificationManagerCompat, true); // Run the post-processing script
+                    callback.RunCallback(output, notificationId, notificationManagerCompat, true, context.getContentResolver().openOutputStream(outputFile.getUri())); // Run the post-processing script
                 }
             } catch (IOException e) { // Show the error notification
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
@@ -175,7 +180,11 @@ public class DownloadContent {
                             .setAutoCancel(true)
                             .setSilent(true);
                     notificationManagerCompat.notify(notificationId, builder.build());
-                    callback.RunCallback(output, notificationId, notificationManagerCompat, false); // Run the post-processing script
+                    try {
+                        callback.RunCallback(output, notificationId, notificationManagerCompat, false, context.getContentResolver().openOutputStream(outputFile.getUri())); // Run the post-processing script
+                    } catch (FileNotFoundException ignored) {
+
+                    }
                 }
             }
         }).start();

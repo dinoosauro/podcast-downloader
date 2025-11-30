@@ -2,9 +2,12 @@ package dinoosauro.podcastdownloader.PodcastClasses;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
+
+import androidx.documentfile.provider.DocumentFile;
 
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
@@ -20,6 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -129,15 +133,14 @@ public class GetPodcastInformation {
             String finalUrl = getCorrectUrl(urlText);
             Document document = getDocumentFromUrl(finalUrl, context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE).getString("UserAgent", ""));
             List<ShowItems> optionList = new ArrayList<ShowItems>(); // The container of all the podcast items
-            if (preferences.getBoolean("WriteOutputXML", true)) {
+            String folder = preferences.getString("DownloadFolder", null);
+            if (preferences.getBoolean("WriteOutputXML", false) && folder != null) {
                 try {
                     // Create folder and file
-                    File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "PodcastDownloader");
-                    folder.mkdir();
+                    DocumentFile xmlFolder = DocumentFile.fromTreeUri(context, Uri.parse(folder));
                     String getPodcastTitle = nullPlaceholder(document.getElementsByTagName("title").item(0), keepIndentation, shouldKeepLineBreak);
-                    File xmlFile = new File(folder, PodcastDownloader.DownloadQueue.nameSanitizer(getPodcastTitle != null ? getPodcastTitle : finalUrl) + " [" + PodcastDownloader.DownloadQueue.nameSanitizer((new Date()).toString()) + "].xml");
-                    xmlFile.createNewFile();
-                    FileOutputStream fos = new FileOutputStream(xmlFile);
+                    DocumentFile xmlFile = xmlFolder.createFile("application/xml", PodcastDownloader.DownloadQueue.nameSanitizer(getPodcastTitle != null ? getPodcastTitle : finalUrl) + " [" + PodcastDownloader.DownloadQueue.nameSanitizer((new Date()).toString()) + "]");
+                    OutputStream fos = context.getContentResolver().openOutputStream(xmlFile.getUri());
                     // Convert the Document to a String using the TransformerFactory. This might be rewritten later, since it would be more convenient to directly fetch the XML as a string and write it.
                     TransformerFactory transformerFactory = TransformerFactory.newInstance();
                     Transformer transformer = transformerFactory.newTransformer();

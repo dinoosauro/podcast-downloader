@@ -64,6 +64,7 @@ import java.util.Set;
 import dinoosauro.podcastdownloader.PodcastClasses.GetPodcastInformation;
 import dinoosauro.podcastdownloader.PodcastClasses.UrlStorage;
 import dinoosauro.podcastdownloader.UIHelper.LoadingDialog;
+import dinoosauro.podcastdownloader.UIHelper.PickPodcastFolder;
 
 public class Settings extends AppCompatActivity {
     public enum SettingsSave {
@@ -97,11 +98,13 @@ public class Settings extends AppCompatActivity {
             put((View) findViewById(R.id.jpegQuality), new updateFields("JpegQuality", SettingsSave.SAVE_AS_INT, "80"));
             put((View) findViewById(R.id.mp3Metadata), new updateFields("MP3Metadata", SettingsSave.SAVE_AS_BOOLEAN, "1"));
             put((View) findViewById(R.id.htmlParsing), new updateFields("DecodeHTML", SettingsSave.SAVE_AS_BOOLEAN, "1"));
-            put((View) findViewById(R.id.saveXmlFile), new updateFields("WriteOutputXML", SettingsSave.SAVE_AS_BOOLEAN, "1"));
+            put((View) findViewById(R.id.saveXmlFile), new updateFields("WriteOutputXML", SettingsSave.SAVE_AS_BOOLEAN, "0"));
             put((View) findViewById(R.id.keepIndentation), new updateFields("KeepIndentation", SettingsSave.SAVE_AS_BOOLEAN, "0"));
             put((View) findViewById(R.id.keepLineBreak), new updateFields("KeepLineBreak", SettingsSave.SAVE_AS_BOOLEAN, "0"));
             put((View) findViewById(R.id.saveRssFeed), new updateFields("SaveRSSFeedUrl", SettingsSave.SAVE_AS_BOOLEAN, "1"));
             put((View) findViewById(R.id.userAgent), new updateFields("UserAgent", SettingsSave.SAVE_AS_STRING, ""));
+            put((View) findViewById(R.id.saveInPodcastTitleDirectory), new updateFields("CreateShowSubdirectory", SettingsSave.SAVE_AS_BOOLEAN, "1"));
+            put((View) findViewById(R.id.saveJsonFile), new updateFields("CreateJsonFile", SettingsSave.SAVE_AS_BOOLEAN, "1"));
         }};
         SharedPreferences preferences = this.getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         for (Map.Entry<View, updateFields> entry : updateValue.entrySet()) {
@@ -130,7 +133,7 @@ public class Settings extends AppCompatActivity {
                             if (s != null) {
                                 if (entry.getValue().type == SettingsSave.SAVE_AS_INT && !s.toString().equals("")) preferences.edit().putInt(entry.getValue().key, Integer.parseInt(s.toString())).apply(); else if (entry.getValue().type == SettingsSave.SAVE_AS_STRING) preferences.edit().putString(entry.getValue().key, s.toString()).apply();
                             }
-                            }
+                        }
                     });
             }
         }
@@ -140,10 +143,8 @@ public class Settings extends AppCompatActivity {
             openSourceView.setWebViewClient(new WebViewClient() {
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, request.getUrl());
-                        view.getContext().startActivity(intent);
-                    }
+                    Intent intent = new Intent(Intent.ACTION_VIEW, request.getUrl());
+                    view.getContext().startActivity(intent);
                     return true;
                 }
             });
@@ -209,7 +210,6 @@ public class Settings extends AppCompatActivity {
             String sourceUrl;
             try {
                 while ((sourceUrl = xmlSources.readLine()) != null) { 
-                    Log.d("AvailableItems", sourceUrl);
                     String[] source = sourceUrl.split(" ");
                     if (source.length > 3)
                         CreateChip(String.join(" ", Arrays.copyOf(source, source.length - 3)), preferences, findViewById(R.id.sourcesContainer));
@@ -235,21 +235,7 @@ public class Settings extends AppCompatActivity {
             }
         });
         findViewById(R.id.exportUrls).setOnClickListener(view -> { // Export the history to a file (the location will be asked to the user)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) { //
-                writeFile.launch(new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain").putExtra(Intent.EXTRA_TITLE, "HistoryLinks.txt"));
-            } else { // No create document intent available. We'll write a file in the PodcastDownloader directory instead.
-                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "PodcastDownloader");
-                if (!file.exists()) file.mkdir();
-                File output = new File(file, "HistoryLinks [" + PodcastDownloader.DownloadQueue.nameSanitizer((new Date()).toString()) + "].txt");
-                if (output.exists()) output.delete();
-                try {
-                    output.createNewFile();
-                    WriteHistoryFile(getApplicationContext(), Uri.fromFile(output), view);
-                    Snackbar.make(view, R.string.history_written, Snackbar.LENGTH_LONG).show();
-                } catch (IOException e) {
-                    Snackbar.make(view, R.string.failed_url_export, Snackbar.LENGTH_LONG).show();
-                }
-            }
+            writeFile.launch(new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain").putExtra(Intent.EXTRA_TITLE, "HistoryLinks.txt"));
         });
 
         /**
@@ -275,6 +261,20 @@ public class Settings extends AppCompatActivity {
 
         findViewById(R.id.importUrls).setOnClickListener(view -> {
             readFile.launch(new Intent(Intent.ACTION_GET_CONTENT).setType("*/*"));
+        });
+
+        // ActivityResult that permits to pick a custom download folder
+        ActivityResultLauncher<Intent> getOutputFolder = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), o -> PickPodcastFolder.updateStorage(o, getApplicationContext()));
+        findViewById(R.id.changeOutputFolder).setOnClickListener(view -> getOutputFolder.launch(PickPodcastFolder.getIntent()) );
+
+        // Empty cache button
+        findViewById(R.id.emptyCache).setOnClickListener(view -> {
+            File folder = new File(getFilesDir(), "TempFiles");
+            if (folder.exists()) {
+                for (File file: folder.listFiles()) {
+                    if (file.isFile()) file.delete();
+                }
+            }
         });
     }
 

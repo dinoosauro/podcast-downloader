@@ -24,7 +24,11 @@ import com.mpatric.mp3agic.Mp3File;
 import org.jsoup.Jsoup;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import dinoosauro.podcastdownloader.MainActivity;
 import dinoosauro.podcastdownloader.PodcastDownloader;
@@ -61,9 +65,12 @@ public class DownloadCallback {
      * @param notificationId the ID used to inform the user of the download
      * @param notificationManagerCompat the NotificationManagerCompat used to create the notification
      * @param isSuccessful if the download was successful or not
+     * @param outputFile the OutputStream that will be used to write the podcast to the external storage.
      */
-    public void RunCallback(File file, int notificationId, NotificationManagerCompat notificationManagerCompat, boolean isSuccessful) {
+    public void RunCallback(File file, int notificationId, NotificationManagerCompat notificationManagerCompat, boolean isSuccessful, OutputStream outputFile) {
         Thread thread = new Thread(() -> {
+            // The file that'll be copied to the external storage
+            File fileToCopy = file;
             PodcastDownloadInformation currentPodcastInformation = PodcastDownloader.DownloadQueue.currentOperations.get(downloadId);
             PodcastDownloader.DownloadQueue.currentOperations.remove(downloadId); // Make sure the next item can be downloaded
             // And start its download. *THIS MUST BE DONE IN THE MAIN THREAD*: otherwise, the Thread won't be the same which initialized the View, causing in an Exception
@@ -108,15 +115,28 @@ public class DownloadCallback {
                         if (metadataFile.exists()) metadataFile.delete();
                         mp3File.save(newFileName);
                         file.delete(); // Delete the old file
-                        metadataFile.renameTo(file); // And move the metadata file to the location
-                        MediaScannerConnection.scanFile(context, new String[]{file.getAbsolutePath()}, new String[]{"audio/mpeg"}, null); // Scan the new file
+                        fileToCopy = metadataFile;
                     } catch (Exception e) {
                         context.runOnUiThread(() -> {
                             Snackbar.make(context.findViewById(R.id.downloadItemsContainer), context.getResources().getString(R.string.failed_metadata_add) + " " + currentPodcastInformation.items.get(0).title, BaseTransientBottomBar.LENGTH_LONG).show();
                         });
                     }
-                } else {
-                    MediaScannerConnection.scanFile(context, new String[]{file.getAbsolutePath()}, new String[]{"audio/*"}, null); // Scan the downloaded file
+                }
+                try { // Let's copy the final file to the external storage
+                    InputStream is = new FileInputStream(fileToCopy);
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        outputFile.write(buffer, 0, bytesRead);
+                    }
+                    outputFile.flush();
+                    fileToCopy.delete();
+                    MediaScannerConnection.scanFile(context, new String[]{file.getAbsolutePath()}, new String[]{"audio/mpeg"}, null); // Scan the new file
+                } catch (IOException e) {
+                    fileToCopy.delete();
+                    context.runOnUiThread(() -> {
+                        Snackbar.make(context.findViewById(R.id.downloadItemsContainer), context.getResources().getString(R.string.failed_file_copy) + " " + currentPodcastInformation.items.get(0).title, BaseTransientBottomBar.LENGTH_LONG).show();
+                    });
                 }
             }
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED && isSuccessful) { // Delete the notification since the file is ready

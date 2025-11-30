@@ -91,5 +91,11 @@
     <string name="customUserAgent">Custom User Agent (none if blank)</string>
     <string name="user_agent_description">If you want, you can customize the User Agent that is sent when fetching both the XML and the MP3 files. If you don\'t know what this is, leave it blank.</string>
     <string name="keep_track_downloader_settings">When automatically downloading new podcasts, use the podcast track number settings that have been used for the last download of that podcast instead of the generic ones.</string>
+    <string name="change_downloads_folder">Change download folder</string>
+    <string name="create_show_dir">Create a subdirectory for each show</string>
+    <string name="save_json_file">Save a JSON file with all the metadata fetched of each downloaded episode</string>
+    <string name="failed_file_copy">Failed file copy to external storage. This episode won\'t be saved on the device.</string>
+    <string name="pick_dir_prompt">Please pick the default output directory</string>
+    <string name="empty_cache">Empty cache</string>
 
 </resources>

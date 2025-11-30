@@ -50,6 +50,27 @@
                 android:layout_height="wrap_content"
                 android:text="@string/downloads_settings" />
 
+
+            <Button
+                android:id="@+id/changeOutputFolder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/change_downloads_folder" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/saveInPodcastTitleDirectory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/create_show_dir"
+                android:textSize="16sp" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/saveJsonFile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/save_json_file"
+                android:textSize="16sp" />
+
             <TextView
                 android:id="@+id/textView4"
                 android:layout_width="match_parent"
@@ -95,6 +116,12 @@
                     android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
+
+            <Button
+                android:id="@+id/emptyCache"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Empty cache" />
 
             <TextView
                 android:id="@+id/textView5"
