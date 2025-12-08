@@ -36,6 +36,11 @@ public class CheckDuplicates {
          * @param information the PodcastInformation to download
          */
         public abstract void enqueue(PodcastInformation information);
+
+        /**
+         * The function called when all the items have been fetched
+         */
+        public abstract void fetchedAllItems();
     }
 
     /**
@@ -86,6 +91,7 @@ public class CheckDuplicates {
                         }
                     }
                 }
+                enqueue.fetchedAllItems();
             } catch (IOException ignored) {
 
             }
@@ -122,6 +128,7 @@ public class CheckDuplicates {
                         }
                     }
                 }
+                enqueue.fetchedAllItems();
             } catch (Exception ignored) {
 
             }

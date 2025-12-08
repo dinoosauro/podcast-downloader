@@ -69,6 +69,42 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.POST_NOTIFICATIONS}, 0);
         }
         CheckUpdates.migrate(getApplicationContext());
+
+        // The ActivityResult used ot get which elements should be downloaded
+        ActivityResultLauncher<Intent> getFetchedRequest = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK) {
+                Intent data = result.getData();
+                if (data != null) {
+                    ArrayList<String> jsonExtra = data.getStringArrayListExtra("chosenPodcasts"); // The items to download are stored in an Integer array, where each integer is the position in the PodcastInformation.items ArrayList
+                    if (jsonExtra != null) {
+                        List<PodcastInformation> info = new ArrayList<>();
+                        // We'll now get both the podcast information array (in case multiple podcasts shows are queued) and the single podcast information object (in case the user is manually downloading a single show)
+                        PodcastInformation information = PodcastDownloader.getPodcastInformation();
+                        List<PodcastInformation> informationArr = PodcastDownloader.getPodcastInformationArr();
+                        PodcastDownloader.clearPodcastInformation();
+                        if (information != null) { // User is downloading a single show
+                            for (ShowItems i: information.items) {
+                                if (!jsonExtra.contains(i.uuid)) continue;
+                                ArrayList<ShowItems> items = new ArrayList<>();
+                                items.add(i); // A new PodcastInformation object must be created for each podcast episode. The ShowItems list will include only one item (the current episode)
+                                info.add(new PodcastInformation(information.title, information.image, information.author, items));
+                            }
+                        }
+                        if (informationArr != null) { // User is downloading multiple podcasts shows
+                            for (PodcastInformation i: informationArr) {
+                                if (!jsonExtra.contains(i.items.get(0).uuid)) continue; // When downloading multiple podcasts shows, each episode has its own PodcastInformation object, so the length of the ShowItems list will always be 1.
+                                info.add(i);
+                            }
+                        }
+                        runOnUiThread(() -> { // Now let's add to the queue the podcast entries
+                            for (PodcastInformation entry : info) {
+                                PodcastDownloader.DownloadQueue.enqueueItem(entry, MainActivity.this);
+                            }
+                        });
+                    }
+                }
+            }
+        });
         findViewById(R.id.downloadNewEpisodes).setOnClickListener(view -> { // Show the Dialog where the user can choose how to download the new episodes of their favorite podcasts
             LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
             View layout = inflater.inflate(R.layout.download_multiple_files, null);
@@ -77,16 +113,32 @@ public class MainActivity extends AppCompatActivity {
                     LinearLayout.LayoutParams.MATCH_PARENT
             ));
             layout.setVisibility(View.VISIBLE);
+            // The list that'll contain all the information of the fetched podcasts
+            List<PodcastInformation> fetchedPodcasts = new ArrayList<>();
             AtomicBoolean stopAtFirst = new AtomicBoolean(false); // If true, the script will break when a duplicate is found
+            AtomicBoolean showDownloadPicker = new AtomicBoolean(false); // If true, the user will be able to pick which podcasts to download before downlading them
             ((MaterialSwitch) layout.findViewById(R.id.breakAtFirst)).setOnCheckedChangeListener((buttonView, checked) -> {
                 stopAtFirst.set(checked);
+            });
+            ((MaterialSwitch) layout.findViewById(R.id.showItemsToDownload)).setOnCheckedChangeListener((buttonView, checked) -> {
+                showDownloadPicker.set(checked);
             });
             layout.findViewById(R.id.stopFileName).setOnClickListener(v -> { // Check if a file with the same name already exists to get if a file is a duplicate
                 new Thread(() -> {
                     CheckDuplicates.UsingFileName(getApplicationContext(), stopAtFirst.get(), new CheckDuplicates.EnqueueHandler() {
                         @Override
                         public void enqueue(PodcastInformation information) { // Use this to run the enqueueItem function in the main thread
-                            runOnUiThread(() -> PodcastDownloader.DownloadQueue.enqueueItem(information, MainActivity.this));
+                            runOnUiThread(() -> {
+                                if (showDownloadPicker.get()) fetchedPodcasts.add(information); else PodcastDownloader.DownloadQueue.enqueueItem(information, MainActivity.this);
+                            });
+                        }
+                        @Override
+                        public void fetchedAllItems() {
+                            if (showDownloadPicker.get()) {
+                                PodcastDownloader.setPodcastInformation(fetchedPodcasts); // We'll store the new items in the PodcastDownloader class, since there's a risk that passing them as a extra intent string causes a TransactionTooLargeException
+                                Intent intent = new Intent(MainActivity.this, PodcastsItemsDownloader.class);
+                                getFetchedRequest.launch(intent);
+                            }
                         }
                     });
                 }).start();
@@ -97,7 +149,17 @@ public class MainActivity extends AppCompatActivity {
                     CheckDuplicates.UsingURL(stopAtFirst.get(), getApplicationContext(), new CheckDuplicates.EnqueueHandler() {
                         @Override
                         public void enqueue(PodcastInformation information) {
-                            runOnUiThread(() -> PodcastDownloader.DownloadQueue.enqueueItem(information, MainActivity.this));
+                            runOnUiThread(() -> {
+                                if (showDownloadPicker.get()) fetchedPodcasts.add(information); else PodcastDownloader.DownloadQueue.enqueueItem(information, MainActivity.this);
+                            });
+                        }
+                        @Override
+                        public void fetchedAllItems() {
+                            if (showDownloadPicker.get()) {
+                                PodcastDownloader.setPodcastInformation(fetchedPodcasts); // We'll store the new items in the PodcastDownloader class, since there's a risk that passing them as a extra intent string causes a TransactionTooLargeException
+                                Intent intent = new Intent(MainActivity.this, PodcastsItemsDownloader.class);
+                                getFetchedRequest.launch(intent);
+                            }
                         }
                     });
                 }).start();
@@ -106,30 +168,6 @@ public class MainActivity extends AppCompatActivity {
             downloadDialog = new MaterialAlertDialogBuilder(MainActivity.this)
                     .setView(layout)
                     .show();
-        });
-        // The ActivityResult used ot get which elements should be downloaded
-        ActivityResultLauncher<Intent> getFetchedRequest = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == RESULT_OK) {
-                Intent data = result.getData();
-                if (data != null) {
-                    ArrayList<Integer> jsonExtra = data.getIntegerArrayListExtra("chosenPodcasts"); // The items to download are stored in an Integer array, where each integer is the position in the PodcastInformation.items ArrayList
-                    if (jsonExtra != null) {
-                        List<PodcastInformation> info = new ArrayList<>();
-                        PodcastInformation information = PodcastDownloader.getPodcastInformation();
-                        PodcastDownloader.clearPodcastInformation();
-                        for (int i: jsonExtra) {
-                            ArrayList<ShowItems> items = new ArrayList<>();
-                            items.add(information.items.get(i)); // A new PodcastInformation object must be created for each podcast episode. The ShowItems list will include only one item (the current episode)
-                            info.add(new PodcastInformation(information.title, information.image, information.author, items));
-                        }
-                        runOnUiThread(() -> { // Now let's add to the queue the podcast entries
-                            for (PodcastInformation entry : info) {
-                                PodcastDownloader.DownloadQueue.enqueueItem(entry, MainActivity.this);
-                            }
-                        });
-                    }
-                }
-            }
         });
         ActivityResultLauncher<Intent> getOutputFolder = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), o -> {
             if (PickPodcastFolder.updateStorage(o, getApplicationContext()) != null) { // Successful storage update

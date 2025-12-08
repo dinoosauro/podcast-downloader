@@ -98,4 +98,5 @@
     <string name="failed_file_copy">Impossibile copiare il file nell\'archiviazione esterna. Questo episodio non verrà salvato sul dispositivo.</string>
     <string name="pick_dir_prompt">Selezionare la cartella di destinazione predefinita</string>
     <string name="empty_cache">Svuota la cache</string>
+    <string name="show_fetched_items_before_downloading">Mostra gli episodi ottenuti prima di scaricarli</string>
 </resources>

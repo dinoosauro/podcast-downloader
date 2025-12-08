@@ -41,6 +41,8 @@ and how PodcastDownloader should look for duplicates. You have two options:
 - Look if a file with the same name exists
 - Look if the URL has already been downloaded
 
+You can also choose to show all the episode that will be downloaded in a list before doing so. With this option, you can choose which podcast episodes shouldn't be downloaded.
+
 ## Settings
 
 ![Settings UI](./readme_assets/settings_ui.jpg)

@@ -33,7 +33,10 @@ public class PickPodcastFolder {
     public static String updateStorage(ActivityResult o, Context context) {
         if (o.getResultCode() == RESULT_OK) {
             Intent data = o.getData();
-            context.getContentResolver().takePersistableUriPermission(data.getData(), Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            int flags = data.getFlags()
+                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            context.getContentResolver().takePersistableUriPermission(data.getData(), flags);
             String path = data.getData().toString();
             context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE).edit().putString("DownloadFolder", path).apply();
             return path;

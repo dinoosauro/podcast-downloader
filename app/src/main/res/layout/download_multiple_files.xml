@@ -30,6 +30,12 @@
             android:layout_height="wrap_content"
             android:text="@string/break_at_first" />
 
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/showItemsToDownload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Show the fetched items before downloading" />
+
         <Button
             android:id="@+id/stopFileName"
             style="@style/Widget.Material3.Button.TextButton"

@@ -48,6 +48,10 @@ public class PodcastDownloader extends Application {
      * The podcast information that are being selected by the user
      */
     private static PodcastInformation currentPodcastInfo;
+    /**
+     * The multiple podcasts shows that the user might want to download
+     */
+    private static List<PodcastInformation> currentPodcastInfoArr;
 
     /**
      * Set the podcast information that will be selected by the user
@@ -55,6 +59,15 @@ public class PodcastDownloader extends Application {
      */
     public static void setPodcastInformation(PodcastInformation info) {
         currentPodcastInfo = info;
+        currentPodcastInfoArr = null;
+    }
+    /**
+     * Set the multiple PodcastInformation objects that the user might want to download
+     * @param info the PodcastInformation list to set
+     */
+    public static void setPodcastInformation(List<PodcastInformation> info) {
+        currentPodcastInfo = null;
+        currentPodcastInfoArr = info;
     }
 
     /**
@@ -64,12 +77,20 @@ public class PodcastDownloader extends Application {
     public static PodcastInformation getPodcastInformation() {
         return currentPodcastInfo;
     }
+    /**
+     * Get the PodcastInformation list the user needs to choose
+     * @return the PodcastInformation list to choose
+     */
+    public static List<PodcastInformation> getPodcastInformationArr() {
+        return currentPodcastInfoArr;
+    }
 
     /**
      * Delete the PodcastInformation ArrayList
      */
     public static void clearPodcastInformation() {
         currentPodcastInfo = null;
+        currentPodcastInfoArr = null;
     }
 
     /**

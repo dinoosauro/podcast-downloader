@@ -97,5 +97,6 @@
     <string name="failed_file_copy">Failed file copy to external storage. This episode won\'t be saved on the device.</string>
     <string name="pick_dir_prompt">Please pick the default output directory</string>
     <string name="empty_cache">Empty cache</string>
+    <string name="show_fetched_items_before_downloading">Show the fetched podcasts episodes before downloading</string>
 
 </resources>

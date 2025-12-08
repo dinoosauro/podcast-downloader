@@ -5,6 +5,8 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
+import java.util.UUID;
+
 public class ShowItems {
     public String title;
     public String description;
@@ -12,6 +14,7 @@ public class ShowItems {
     public String episodeNumber;
     public String author;
     public String url;
+    public String uuid = UUID.randomUUID().toString();
 
     /**
      * ShowItems contains the specific metadata for each podcast episode
