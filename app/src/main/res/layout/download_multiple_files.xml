@@ -34,7 +34,7 @@
             android:id="@+id/showItemsToDownload"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Show the fetched items before downloading" />
+            android:text="@string/show_fetched_items_before_downloading" />
 
         <Button
             android:id="@+id/stopFileName"
