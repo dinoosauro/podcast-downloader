@@ -1,16 +1,24 @@
 package dinoosauro.podcastdownloader;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.documentfile.provider.DocumentFile;
 
 import com.google.android.material.color.DynamicColors;
@@ -243,6 +251,19 @@ public class PodcastDownloader extends Application {
                 String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension.substring(1));
                 content.downloadWebpage(currentPodcastInformation.url, file, appContext.getSharedPreferences(appContext.getPackageName(), Context.MODE_PRIVATE).getString("UserAgent", ""), pickedDir.createFile(mimeType == null ? "application/octet-stream" : mimeType, nameSanitizer(currentPodcastInformation.title) + (mimeType == null ? fileExtension : "")));
                 DownloadUIManager.addPodcastConversion(podcastInformation, id);
+            } else if (currentOperations.isEmpty() && ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) { // Send a notification to the user that all the podcasts have been downloaded
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    NotificationChannel channel = new NotificationChannel("DownloadsResult", "Download result", NotificationManager.IMPORTANCE_HIGH);
+                    channel.setDescription("Notifies the user when the download process has been completed.");
+                    channel.enableVibration(true);
+                    context.getSystemService(NotificationManager.class).createNotificationChannel(channel);
+                }
+                NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "DownloadsResult")
+                        .setSmallIcon(R.drawable.baseline_cloud_done_24)
+                        .setContentTitle(context.getResources().getString(R.string.files_downloaded))
+                        .setPriority(NotificationCompat.PRIORITY_HIGH);
+                notificationManagerCompat.notify(1, builder.build());
             }
         }
 

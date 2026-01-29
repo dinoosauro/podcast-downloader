@@ -99,4 +99,7 @@
     <string name="pick_dir_prompt">Selezionare la cartella di destinazione predefinita</string>
     <string name="empty_cache">Svuota la cache</string>
     <string name="show_fetched_items_before_downloading">Mostra gli episodi ottenuti prima di scaricarli</string>
+    <string name="files_downloaded">Tutti i podcast sono stati scaricati.</string>
+    <string name="fetching_data">Sto ottenendo i nuovi podcast. Questo potrebbe richiedere del tempo.</string>
+    <string name="fetched_data">Tutti i nuovi episodi dei podcast sono stati messi in coda.</string>
 </resources>

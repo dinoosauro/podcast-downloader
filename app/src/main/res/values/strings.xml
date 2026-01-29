@@ -98,5 +98,8 @@
     <string name="pick_dir_prompt">Please pick the default output directory</string>
     <string name="empty_cache">Empty cache</string>
     <string name="show_fetched_items_before_downloading">Show the fetched podcasts episodes before downloading</string>
+    <string name="files_downloaded">All the podcasts have been downloaded.</string>
+    <string name="fetching_data">Fetching new podcasts. This might take a while.</string>
+    <string name="fetched_data">All the new podcast episodes have been enqueued.</string>
 
 </resources>

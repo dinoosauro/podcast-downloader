@@ -53,6 +53,7 @@ public class ForegroundNotificationHelper {
                 .setContentTitle(context.getResources().getString(R.string.downloading_podcasts))
                 .setContentText(context.getResources().getString(R.string.downloading_podcasts_desc))
                 .setContentIntent(pendingIntent)
+                .setSilent(true)
                 .build();
     }
 

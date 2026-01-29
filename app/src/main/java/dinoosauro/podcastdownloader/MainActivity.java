@@ -31,6 +31,7 @@ import android.widget.Toast;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
@@ -116,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
             // The list that'll contain all the information of the fetched podcasts
             List<PodcastInformation> fetchedPodcasts = new ArrayList<>();
             AtomicBoolean stopAtFirst = new AtomicBoolean(false); // If true, the script will break when a duplicate is found
-            AtomicBoolean showDownloadPicker = new AtomicBoolean(false); // If true, the user will be able to pick which podcasts to download before downlading them
+            AtomicBoolean showDownloadPicker = new AtomicBoolean(false); // If true, the user will be able to pick which podcasts to download before downloading them
             ((MaterialSwitch) layout.findViewById(R.id.breakAtFirst)).setOnCheckedChangeListener((buttonView, checked) -> {
                 stopAtFirst.set(checked);
             });
@@ -134,6 +135,10 @@ public class MainActivity extends AppCompatActivity {
                         }
                         @Override
                         public void fetchedAllItems() {
+                            runOnUiThread(() -> { // Hide circle progress bar, and notify the user that all the items have been enqueued
+                                findViewById(R.id.fetchingPodcastsStatus).setVisibility(View.GONE);
+                                Snackbar.make(findViewById(R.id.main), getResources().getString(R.string.fetched_data), Snackbar.LENGTH_LONG).show();
+                            });
                             if (showDownloadPicker.get()) {
                                 PodcastDownloader.setPodcastInformation(fetchedPodcasts); // We'll store the new items in the PodcastDownloader class, since there's a risk that passing them as a extra intent string causes a TransactionTooLargeException
                                 Intent intent = new Intent(MainActivity.this, PodcastsItemsDownloader.class);
@@ -143,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }).start();
                 downloadDialog.dismiss();
+                runOnUiThread(() -> findViewById(R.id.fetchingPodcastsStatus).setVisibility(View.VISIBLE));
             });
             layout.findViewById(R.id.stopUrl).setOnClickListener(v -> { // Check if the URL has already been downloaded to get if a file is a duplicate
                 new Thread(() -> {
@@ -155,6 +161,10 @@ public class MainActivity extends AppCompatActivity {
                         }
                         @Override
                         public void fetchedAllItems() {
+                            runOnUiThread(() -> { // Hide circle progress bar, and notify the user that all the items have been enqueued
+                                findViewById(R.id.fetchingPodcastsStatus).setVisibility(View.GONE);
+                                Snackbar.make(findViewById(R.id.main), getResources().getString(R.string.fetched_data), Snackbar.LENGTH_LONG).show();
+                            });
                             if (showDownloadPicker.get()) {
                                 PodcastDownloader.setPodcastInformation(fetchedPodcasts); // We'll store the new items in the PodcastDownloader class, since there's a risk that passing them as a extra intent string causes a TransactionTooLargeException
                                 Intent intent = new Intent(MainActivity.this, PodcastsItemsDownloader.class);
@@ -164,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }).start();
                 downloadDialog.dismiss();
+                runOnUiThread(() -> findViewById(R.id.fetchingPodcastsStatus).setVisibility(View.VISIBLE));
             });
             downloadDialog = new MaterialAlertDialogBuilder(MainActivity.this)
                     .setView(layout)
@@ -237,5 +248,4 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
 }
