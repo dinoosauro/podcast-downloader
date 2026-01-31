@@ -101,5 +101,12 @@
     <string name="files_downloaded">All the podcasts have been downloaded.</string>
     <string name="fetching_data">Fetching new podcasts. This might take a while.</string>
     <string name="fetched_data">All the new podcast episodes have been enqueued.</string>
+    <string name="title_activity_main_downloader" translatable="false">MainDownloader</string>
+    <string name="search">Search</string>
+    <string name="search_btn">Search button</string>
+    <string name="write_podcast_name">Write the podcast name</string>
+    <string name="itunes_fetched_results">Results will be fetched from iTunes. Click on the search button on the bottom-left part of the screen to search (or to refresh the results).</string>
+    <string name="search_error">An error occurred while fetching data from iTunes API.</string>
+    <string name="fetching_search">Fetching podcasts shows. This might take a while.</string>
 
 </resources>

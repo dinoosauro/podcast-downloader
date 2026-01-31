@@ -4,7 +4,7 @@ An Android application that can download podcasts from a RSS feed.
 
 ## How it works
 
-Find the URL of a podcast's RSS feed. Now, add it in the "Downloader" textbox.
+Find the URL of a podcast's RSS feed (using the ["Search" section of the app](#searching-rss-feeds)). Now, add it in the "Downloader" textbox.
 The application will fetch all the available podcasts, and you'll be able to
 select the items to download. The application will download them and, if they
 are a MP3 file, add metadata. You can find screenshots for this process below.
@@ -42,6 +42,12 @@ and how PodcastDownloader should look for duplicates. You have two options:
 - Look if the URL has already been downloaded
 
 You can also choose to show all the episode that will be downloaded in a list before doing so. With this option, you can choose which podcast episodes shouldn't be downloaded.
+
+## Searching RSS feeds
+
+Instead of manually looking for the RSS feeds, go in the "Search" tab to find them by writing the podcast's name. After you've found the podcast you want to download, click on its title to download it.
+
+![Search UI](./readme_assets/search_ui.jpg)
 
 ## Settings
 

@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import dinoosauro.podcastdownloader.MainActivity;
 import dinoosauro.podcastdownloader.PodcastDownloader;
 import dinoosauro.podcastdownloader.R;
 import dinoosauro.podcastdownloader.UIHelper.DownloadUIManager;

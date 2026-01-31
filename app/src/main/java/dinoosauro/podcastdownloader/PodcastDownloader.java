@@ -214,6 +214,10 @@ public class PodcastDownloader extends Application {
                 }
                 Uri folderUri = Uri.parse(folderString);
                 DocumentFile pickedDir = DocumentFile.fromTreeUri(context, folderUri);
+                if (pickedDir == null || !pickedDir.isDirectory() || !pickedDir.exists() || !pickedDir.canWrite()) {
+                    Toast.makeText(context, context.getResources().getString(R.string.pick_dir_prompt), Toast.LENGTH_LONG).show();
+                    return;
+                }
                 if (preferences.getBoolean("CreateShowSubdirectory", true)) {
                     String podcastName = nameSanitizer(podcastInformation.title);
                     // We'll now iterate over all files/directories in the folder to find if a folder with the same name exists

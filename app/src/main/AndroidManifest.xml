@@ -21,27 +21,28 @@
         tools:targetApi="34">
         <service
             android:name=".ForegroundService.ForegroundService"
-            android:foregroundServiceType="dataSync"
-            android:exported="false" />
-        <activity
-            android:name=".Settings"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <activity
             android:name=".PodcastsItemsDownloader"
             android:configChanges="orientation|screenSize"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".MainDownloader"
             android:configChanges="orientation|screenSize"
-            android:launchMode="singleTask"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+
                 <data android:mimeType="text/plain" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

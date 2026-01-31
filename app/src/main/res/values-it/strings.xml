@@ -102,4 +102,10 @@
     <string name="files_downloaded">Tutti i podcast sono stati scaricati.</string>
     <string name="fetching_data">Sto ottenendo i nuovi podcast. Questo potrebbe richiedere del tempo.</string>
     <string name="fetched_data">Tutti i nuovi episodi dei podcast sono stati messi in coda.</string>
+    <string name="search">Cerca</string>
+    <string name="search_btn">Pulsante di ricerca</string>
+    <string name="write_podcast_name">Scrivi il nome del podcast</string>
+    <string name="itunes_fetched_results">I risultati verranno ottenuti da iTunes. Clicca sul pulsante di ricerca in basso a sinistra per cercare (o per aggiornare i risultati)</string>
+    <string name="search_error">Si è verificato un errore durante l\'ottenimento dei dati dalle API di iTunes.</string>
+    <string name="fetching_search">Sto ottenendo i podcast. Questo potrebbe richiedere del tempo.</string>
 </resources>

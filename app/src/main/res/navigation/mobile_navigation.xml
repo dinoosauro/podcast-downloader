@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_podcasts_download">
+
+    <fragment
+        android:id="@+id/navigation_podcasts_download"
+        android:name="dinoosauro.podcastdownloader.ui.podcast_download.PodcastDownloadFragment"
+        android:label="@string/download"
+        tools:layout="@layout/fragment_podcast_download" />
+
+    <fragment
+        android:id="@+id/navigation_search"
+        android:name="dinoosauro.podcastdownloader.ui.search.SearchFragment"
+        android:label="@string/search"
+        tools:layout="@layout/fragment_search" />
+
+    <fragment
+        android:id="@+id/navigation_settings"
+        android:name="dinoosauro.podcastdownloader.ui.settings.SettingsFragment"
+        android:label="@string/settings"
+        tools:layout="@layout/fragment_settings" />
+</navigation>

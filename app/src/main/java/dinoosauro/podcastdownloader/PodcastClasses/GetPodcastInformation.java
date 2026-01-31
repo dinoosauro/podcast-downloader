@@ -44,7 +44,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import dinoosauro.podcastdownloader.MainActivity;
 import dinoosauro.podcastdownloader.PodcastDownloader;
 import dinoosauro.podcastdownloader.PodcastsItemsDownloader;
 import dinoosauro.podcastdownloader.R;

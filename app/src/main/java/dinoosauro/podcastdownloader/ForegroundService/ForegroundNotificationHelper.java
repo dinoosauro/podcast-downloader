@@ -12,7 +12,7 @@ import android.os.Build;
 import androidx.core.app.NotificationCompat;
 
 import dinoosauro.podcastdownloader.ForegroundService.ForegroundService;
-import dinoosauro.podcastdownloader.MainActivity;
+import dinoosauro.podcastdownloader.MainDownloader;
 import dinoosauro.podcastdownloader.R;
 
 /**
@@ -45,7 +45,7 @@ public class ForegroundNotificationHelper {
      */
 
     public static Notification createNotification(Context context) {
-        Intent notificationIntent = new Intent(context, MainActivity.class);
+        Intent notificationIntent = new Intent(context, MainDownloader.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
         return new NotificationCompat.Builder(context, CHANNEL_ID)

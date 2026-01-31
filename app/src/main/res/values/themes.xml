@@ -3,18 +3,54 @@
     <style name="Base.Theme.PodcastDownloader" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <item name="colorPrimary">@color/accent_light</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/accent_dark</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
+
+        <!-- Secondary colors -->
+        <item name="colorSecondary">@color/accent_light</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/accent_dark</item>
+        <item name="colorOnSecondaryContainer">@color/white</item>
+
+        <!-- Tertiary colors -->
+        <item name="colorTertiary">@color/accent_light</item>
+        <item name="colorOnTertiary">@color/white</item>
+
+        <!-- Surface colors - this controls AppBarLayout -->
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/black</item>
+
+
+        <!-- Font and spacing -->
         <item name="android:fontFamily">@font/work_sans</item>
         <item name="fontFamily">@font/work_sans</item>
-        <item name="android:layout_marginBottom">4sp</item>
-        <item name="android:layout_marginTop">4sp</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textViewStyle">@style/TextStyle</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="android:layout_marginTop">4dp</item>
     </style>
     <style name="settingsTitleDivider" parent="@style/TextAppearance.Material3.HeadlineMedium">
         <item name="android:layout_marginTop">20sp</item>
     </style>
     <style name="TextStyle" parent="MaterialAlertDialog.Material3.Body.Text">
+
     </style>
+
+    <style name="Theme.NoMargins" parent="">
+        <item name="android:layout_marginBottom">0dp</item>
+        <item name="android:layout_marginTop">0dp</item>
+    </style>
+
+    <style name="CustomIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:layout_marginTop">0dp</item>
+        <item name="android:layout_marginBottom">0dp</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:height">32dp</item>
+        <item name="android:width">64dp</item>
+        <item name="marginHorizontal">0dp</item>
+    </style>
+
     <style name="MainTitle" parent="TextAppearance.Material3.HeadlineLarge">
         <item name="android:fontFamily">@font/work_sans_bold</item>
     </style>
@@ -22,4 +58,5 @@
         <item name="android:fontFamily">@font/work_sans_bold</item>
     </style>
     <style name="Theme.PodcastDownloader" parent="Base.Theme.PodcastDownloader" />
+
 </resources>
