@@ -125,18 +125,17 @@ public class DownloadContent {
                     progress = fileSize;
                     String translatedDownloaded = context.getString(R.string.downloaded);
                     ScheduledExecutorService service = null;
-                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED && context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE).getBoolean("SendNotificationWhileDownloading", true)) {
                         // Add an interval that updates the download notification with its progress at each second
                     service = Executors.newScheduledThreadPool(1);
                     service.scheduleWithFixedDelay(() -> {
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                                 .setSmallIcon(android.R.drawable.stat_sys_download)
                                 .setContentTitle(fileName)
-                                .setContentText(notificationText)
                                 .setPriority(NotificationCompat.PRIORITY_LOW)
+                                .setStyle(new NotificationCompat.BigTextStyle().setSummaryText(notificationText))
                                 .setOngoing(true)
                                 .setSilent(true);
-
                         if (progress >= 0) {
                             builder.setProgress(100, progress, false);
                         } else { // If -1, we don't know the file size, so it must be indeterminate
@@ -159,7 +158,7 @@ public class DownloadContent {
                     if (service != null) service.shutdown(); // Stop updating the notification
                 }
                 connection.disconnect();
-                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) { // Update the notification. The description text will tell the user that the item is being post-processed.
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED && context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE).getBoolean("SendNotificationWhileDownloading", true)) { // Update the notification. The description text will tell the user that the item is being post-processed.
                     NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                             .setSmallIcon(android.R.drawable.ic_menu_save)
                             .setContentTitle(fileName)
@@ -171,7 +170,7 @@ public class DownloadContent {
                     callback.RunCallback(output, notificationId, notificationManagerCompat, true, context.getContentResolver().openOutputStream(outputFile.getUri())); // Run the post-processing script
                 }
             } catch (IOException e) { // Show the error notification
-                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED && context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE).getBoolean("SendNotificationWhileDownloading", true)) {
                     NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                             .setSmallIcon(android.R.drawable.stat_notify_error)
                             .setContentTitle(fileName)

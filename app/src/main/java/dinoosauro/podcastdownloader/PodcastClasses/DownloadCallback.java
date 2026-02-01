@@ -3,9 +3,15 @@ package dinoosauro.podcastdownloader.PodcastClasses;
 import android.Manifest;
 import android.app.Activity;
 import android.app.DownloadManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
 import android.media.MediaScannerConnection;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +20,7 @@ import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
 
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.google.android.material.snackbar.BaseTransientBottomBar;
@@ -29,6 +36,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Random;
 
 import dinoosauro.podcastdownloader.PodcastDownloader;
 import dinoosauro.podcastdownloader.R;
@@ -140,6 +148,26 @@ public class DownloadCallback {
             }
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED && isSuccessful) { // Delete the notification since the file is ready
                 notificationManagerCompat.cancel(notificationId);
+                if (context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE).getBoolean("SendNotificationsAfterEachFile", false)) { // Send a notification to the user so that they know the file has been downloaded
+                    Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        NotificationChannel channel = new NotificationChannel("DownloadedFile", "Single file download", NotificationManager.IMPORTANCE_HIGH);
+                        AudioAttributes audioAttributes = new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build();
+                        channel.setDescription("Notifies the user when a single download has been completed.");
+                        channel.setSound(soundUri, audioAttributes);
+                        channel.enableVibration(true);
+                        context.getSystemService(NotificationManager.class).createNotificationChannel(channel);
+                    }
+
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "DownloadedFile")
+                            .setSmallIcon(R.drawable.download_done_24px)
+                            .setContentTitle(context.getResources().getString(R.string.file_downloaded))
+                            .setContentText(currentPodcastInformation != null ? currentPodcastInformation.items.get(0).title : file.getName())
+                            .setSound(soundUri)
+                            .setStyle(new NotificationCompat.BigTextStyle().bigText(currentPodcastInformation != null ? String.format(context.getResources().getString(R.string.download_specific_file_str), currentPodcastInformation.items.get(0).title, currentPodcastInformation.items.get(0).episodeNumber, currentPodcastInformation.title) : String.format(context.getResources().getString(R.string.download_generic_file_str), file.getName())))
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                    notificationManagerCompat.notify(new Random().nextInt(), builder.build());
+                }
             }
             ViewGroup[] destinationLayout = DownloadUIManager.operationContainer.get(downloadId);
             if (destinationLayout != null) {
@@ -156,7 +184,7 @@ public class DownloadCallback {
                     try {
                     Thread.sleep(500);
                     context.runOnUiThread(() -> {
-                        PodcastDownloader.DownloadQueue.disableServiceIfNecessary(); // Check if the Foreground Service should be disabled (and disable it if necessary)
+                        PodcastDownloader.DownloadQueue.disableServiceIfNecessary(context); // Check if the Foreground Service should be disabled (and disable it if necessary)
                         for (ViewGroup view : destinationLayout) {
                             if (view == null) continue;
                             ViewGroup parentElement = ((ViewGroup) view.getParent());

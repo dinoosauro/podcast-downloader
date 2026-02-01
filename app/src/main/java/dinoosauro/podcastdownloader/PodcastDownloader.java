@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -163,14 +165,36 @@ public class PodcastDownloader extends Application {
         }
 
         /**
-         * If no elements are in the queue, the Foreground service will be disabled.
+         * If no elements are in the queue, the Foreground service will be disabled, and, if the user wants so, a notification will be sent notifying them that all items have been downloaded.
+         * @param context the Context used to send the notification
          */
-        public static void disableServiceIfNecessary() {
+        public static void disableServiceIfNecessary(Context context) {
             try {
-                if (currentOperations.isEmpty() && downloadPodcastInfoList.isEmpty() && ForegroundNotificationHelper.isServiceRunning(appContext)) {
-                Intent stopIntent = new Intent(appContext, ForegroundService.class);
-                stopIntent.setAction("STOP_FOREGROUND_SERVICE");
-                appContext.startService(stopIntent);
+                if (currentOperations.isEmpty() && downloadPodcastInfoList.isEmpty()) {
+                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED && appContext.getSharedPreferences(appContext.getPackageName(), Context.MODE_PRIVATE).getBoolean("SendNotificationAtTheEnd", true)) { // Send a notification to the user that all the podcasts have been downloaded
+                        Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            NotificationChannel channel = new NotificationChannel("DownloadsResult", "Download result", NotificationManager.IMPORTANCE_HIGH);
+                            AudioAttributes audioAttributes = new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build();
+                            channel.setDescription("Notifies the user when the download process has been completed.");
+                            channel.enableVibration(true);
+                            channel.setSound(soundUri, audioAttributes);
+                            context.getSystemService(NotificationManager.class).createNotificationChannel(channel);
+                        }
+                        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "DownloadsResult")
+                                .setSmallIcon(R.drawable.baseline_cloud_done_24)
+                                .setContentTitle(context.getResources().getString(R.string.files_downloaded))
+                                .setSound(soundUri)
+                                .setGroup("DownloadedPodcastsNotification")
+                                .setPriority(NotificationCompat.PRIORITY_HIGH);
+                        notificationManagerCompat.notify(2, builder.build());
+                    }
+                    if (ForegroundNotificationHelper.isServiceRunning(appContext)) {
+                        Intent stopIntent = new Intent(appContext, ForegroundService.class);
+                        stopIntent.setAction("STOP_FOREGROUND_SERVICE");
+                        appContext.startService(stopIntent);
+                    }
             }
             } catch (Exception ex) {
                 Toast.makeText(appContext, "Failed to stop Foreground Service", Toast.LENGTH_LONG).show();
@@ -255,19 +279,6 @@ public class PodcastDownloader extends Application {
                 String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension.substring(1));
                 content.downloadWebpage(currentPodcastInformation.url, file, appContext.getSharedPreferences(appContext.getPackageName(), Context.MODE_PRIVATE).getString("UserAgent", ""), pickedDir.createFile(mimeType == null ? "application/octet-stream" : mimeType, nameSanitizer(currentPodcastInformation.title) + (mimeType == null ? fileExtension : "")));
                 DownloadUIManager.addPodcastConversion(podcastInformation, id);
-            } else if (currentOperations.isEmpty() && ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) { // Send a notification to the user that all the podcasts have been downloaded
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    NotificationChannel channel = new NotificationChannel("DownloadsResult", "Download result", NotificationManager.IMPORTANCE_HIGH);
-                    channel.setDescription("Notifies the user when the download process has been completed.");
-                    channel.enableVibration(true);
-                    context.getSystemService(NotificationManager.class).createNotificationChannel(channel);
-                }
-                NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "DownloadsResult")
-                        .setSmallIcon(R.drawable.baseline_cloud_done_24)
-                        .setContentTitle(context.getResources().getString(R.string.files_downloaded))
-                        .setPriority(NotificationCompat.PRIORITY_HIGH);
-                notificationManagerCompat.notify(1, builder.build());
             }
         }
 

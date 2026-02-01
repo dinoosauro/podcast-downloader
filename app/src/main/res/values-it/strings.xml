@@ -108,4 +108,13 @@
     <string name="itunes_fetched_results">I risultati verranno ottenuti da iTunes. Clicca sul pulsante di ricerca in basso a sinistra per cercare (o per aggiornare i risultati)</string>
     <string name="search_error">Si è verificato un errore durante l\'ottenimento dei dati dalle API di iTunes.</string>
     <string name="fetching_search">Sto ottenendo i podcast. Questo potrebbe richiedere del tempo.</string>
+    <string name="download_specific_file_str">L\'episodio \"%s\" (%s) del podcast \"%s\" è stato scariato.</string>
+    <string name="download_generic_file_str">Il file \"%s\" è stato scaricato.</string>
+    <string name="file_downloaded">File scaricato</string>
+    <string name="notifications">Notifiche:</string>
+    <string name="notifications_at_end">Invia una notifica dopo che tutti i file sono stati scaricati</string>
+    <string name="notifications_after_single_file">Invia una notifica dopo che un file è stato scaricato</string>
+    <string name="notifications_while_downloading">Invia una notifica silenziosa che mostra il processo del download. È cosingliato mantenere questo interruttore attivo</string>
+    <string name="export_source_list">Esporta lista delle sorgenti</string>
+    <string name="import_source_list">Importa lista delle sorgenti</string>
 </resources>

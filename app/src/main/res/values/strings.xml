@@ -108,5 +108,14 @@
     <string name="itunes_fetched_results">Results will be fetched from iTunes. Click on the search button on the bottom-left part of the screen to search (or to refresh the results).</string>
     <string name="search_error">An error occurred while fetching data from iTunes API.</string>
     <string name="fetching_search">Fetching podcasts shows. This might take a while.</string>
+    <string name="download_specific_file_str">The \"%s\" episode (%s) of the \"%s\" show has been downloaded.</string>
+    <string name="download_generic_file_str">The \"%s\" file has been downloaded.</string>
+    <string name="file_downloaded">File downloaded</string>
+    <string name="notifications">Notifications:</string>
+    <string name="notifications_at_end">Send a notification after all files have been downloaded</string>
+    <string name="notifications_after_single_file">Send a notification after a file has been downloaded</string>
+    <string name="notifications_while_downloading">Send a silent notification displaying the download process. It\'s recommended to keep this switch on</string>
+    <string name="export_source_list">Export source list</string>
+    <string name="import_source_list">Import source list</string>
 
 </resources>

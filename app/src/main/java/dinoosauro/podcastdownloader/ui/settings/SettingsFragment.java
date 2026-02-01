@@ -31,6 +31,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.snackbar.Snackbar;
@@ -44,12 +45,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import dinoosauro.podcastdownloader.PodcastClasses.GetPodcastInformation;
 import dinoosauro.podcastdownloader.PodcastClasses.UrlStorage;
@@ -102,6 +105,9 @@ public class SettingsFragment extends Fragment {
             put((View) root.findViewById(R.id.userAgent), new SettingsFragment.updateFields("UserAgent", SettingsFragment.SettingsSave.SAVE_AS_STRING, ""));
             put((View) root.findViewById(R.id.saveInPodcastTitleDirectory), new SettingsFragment.updateFields("CreateShowSubdirectory", SettingsFragment.SettingsSave.SAVE_AS_BOOLEAN, "1"));
             put((View) root.findViewById(R.id.saveJsonFile), new SettingsFragment.updateFields("CreateJsonFile", SettingsFragment.SettingsSave.SAVE_AS_BOOLEAN, "1"));
+            put((View) root.findViewById(R.id.enableNotificationsAtEndOfConversion), new SettingsFragment.updateFields("SendNotificationAtTheEnd", SettingsSave.SAVE_AS_BOOLEAN, "1"));
+            put((View) root.findViewById(R.id.enableNotificationForEachFile), new SettingsFragment.updateFields("SendNotificationsAfterEachFile", SettingsSave.SAVE_AS_BOOLEAN, "0"));
+            put((View) root.findViewById(R.id.enableNotificationsWhileDownloading), new SettingsFragment.updateFields("SendNotificationWhileDownloading", SettingsSave.SAVE_AS_BOOLEAN, "1"));
         }};
         SharedPreferences preferences = getContext().getSharedPreferences(getContext().getPackageName(), Context.MODE_PRIVATE);
         for (Map.Entry<View, SettingsFragment.updateFields> entry : updateValue.entrySet()) {
@@ -201,42 +207,40 @@ public class SettingsFragment extends Fragment {
                     .setView(layout)
                     .show();
         });
-        // Create a new chip with the URL by getting all the Podcast sources
-        BufferedReader xmlSources = UrlStorage.getDownloadBuffer(getContext().getApplicationContext(), true);
-        if (xmlSources != null) {
-            String sourceUrl;
-            try {
-                while ((sourceUrl = xmlSources.readLine()) != null) {
-                    String[] source = sourceUrl.split(" ");
-                    if (source.length > 3)
-                        CreateChip(String.join(" ", Arrays.copyOf(source, source.length - 3)), preferences, root.findViewById(R.id.sourcesContainer));
-                }
-            } catch (Exception ignored) {
-
-            }
-        }
+        generateSourceList(preferences, root.findViewById(R.id.sourcesContainer));
         root.findViewById(R.id.addSource).setOnClickListener(v -> { // Add the text in the textbox as a source
             Editable url = ((TextInputEditText) root.findViewById(R.id.sourceUrl)).getText();
             if (url == null) return;
             UrlStorage.addDownloadedUrl(getContext().getApplicationContext(), String.format("%s %s %s %s", url, preferences.getBoolean("UseSuggestedTrack", true) ? 1 : 0, preferences.getInt("SuggestedTrackFallback", 0), preferences.getInt("SuggestedTrackStartFrom", 1)), true, true); // We need to add also the current podcast track number options, since, if files are automatically downloaded, the user can choose to download the new podcasts by keeping the previous track number settings.
             CreateChip(url.toString(), preferences, root.findViewById(R.id.sourcesContainer));
         });
+
         root.findViewById(R.id.deleteUrls).setOnClickListener(view -> UrlStorage.removeUrls(getContext())); // Remove every URL from history
+        /**
+         * If true, the intent callbacks should update the URL history. Otherwise, the intent callbacks should update the RSS source list.
+         */
+        AtomicBoolean updateUrls = new AtomicBoolean(true);
         /**
          * The ActivityResult called after the user has chosen where the file with the URL history should be written.
          */
         ActivityResultLauncher<Intent> writeFile = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), o -> {
             if (o.getResultCode() == RESULT_OK) {
                 Intent data = o.getData();
-                if (data != null) WriteHistoryFile(getContext().getApplicationContext(), data.getData(), root.findViewById(R.id.exportUrls));
+                if (data != null) WriteHistoryFile(getContext().getApplicationContext(), data.getData(), root.findViewById(R.id.exportUrls), !updateUrls.get());
             }
         });
         root.findViewById(R.id.exportUrls).setOnClickListener(view -> { // Export the history to a file (the location will be asked to the user)
+            updateUrls.set(true);
             writeFile.launch(new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain").putExtra(Intent.EXTRA_TITLE, "HistoryLinks.txt"));
         });
 
+        root.findViewById(R.id.exportSource).setOnClickListener(view -> {
+            updateUrls.set(false);
+            writeFile.launch(new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain").putExtra(Intent.EXTRA_TITLE, "RSSSourceList.txt"));
+        });
+
         /**
-         * The ActivityResult that'll read the URL history file, and import them.
+         * The ActivityResult that'll read the URL history file, and import the links.
          */
         ActivityResultLauncher<Intent> readFile = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), o -> {
             if (o.getResultCode() == RESULT_OK) {
@@ -247,16 +251,29 @@ public class SettingsFragment extends Fragment {
                         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (!UrlStorage.checkEntry(getContext().getApplicationContext(), false, line)) UrlStorage.addDownloadedUrl(getContext(), line); // Check that the link isn't already saved
+                            if (!(!updateUrls.get() && line.split(" ").length < 4) && !UrlStorage.checkEntry(getContext().getApplicationContext(), !updateUrls.get(), line)) UrlStorage.addDownloadedUrl(getContext().getApplicationContext(), line, !updateUrls.get(), !updateUrls.get()); // Check that the link isn't already saved. We also check if it's a valid RSS feed syntax in case we're importing RSS feeds.
+                        }
+                        if (!updateUrls.get()) { // Regenerate the chips
+                            getActivity().runOnUiThread(() -> {
+                                ChipGroup layout = root.findViewById(R.id.sourcesContainer);
+                                layout.removeAllViews();
+                                generateSourceList(preferences, layout);
+                            });
                         }
                     } catch(IOException e) {
-                        Log.d("ReadError", e.toString());
+                        Log.e("ReadError", e.toString());
                     }
                 }
             }
         });
 
         root.findViewById(R.id.importUrls).setOnClickListener(view -> {
+            updateUrls.set(true);
+            readFile.launch(new Intent(Intent.ACTION_GET_CONTENT).setType("*/*"));
+        });
+
+        root.findViewById(R.id.importSource).setOnClickListener(view -> {
+            updateUrls.set(false);
             readFile.launch(new Intent(Intent.ACTION_GET_CONTENT).setType("*/*"));
         });
 
@@ -282,9 +299,9 @@ public class SettingsFragment extends Fragment {
         binding = null;
     }
 
-    private static void WriteHistoryFile(Context context, Uri uri, View view) {
+    private static void WriteHistoryFile(Context context, Uri uri, View view, boolean getPodcastXml) {
         try { // Get the URLS and, if there are some, write them to the selected file
-            BufferedReader urls = UrlStorage.getDownloadBuffer(context, false);
+            BufferedReader urls = UrlStorage.getDownloadBuffer(context, getPodcastXml);
             if (urls == null) return;
             OutputStream outputStream = context.getContentResolver().openOutputStream(uri);
             String write;
@@ -308,7 +325,24 @@ public class SettingsFragment extends Fragment {
         chip.setCloseIconVisible(true);
         chip.setEllipsize(TextUtils.TruncateAt.START);
         chip.setOnCloseIconClickListener(v -> { // Remove the source from the list
-            Set<String> sources = new HashSet<>(preferences.getStringSet("PodcastSources", new HashSet<>()));
+            BufferedReader xmlSources = UrlStorage.getDownloadBuffer(getContext(), true);
+            ArrayList<String> builder = new ArrayList<>();
+            if (xmlSources != null) {
+                String url;
+                try {
+                    while ((url = xmlSources.readLine()) != null) {
+                        String[] splitStr = url.split(" ");
+                        if (!sourceUrl.equals(String.join(" ", Arrays.copyOf(splitStr, splitStr.length - 3)))) builder.add(url); // Check if the URL is the same as the provided one, by removing the last three numbers in the RSS file (that are the ones used to store track information)
+                    }
+                    UrlStorage.removeUrls(getContext(), true); // Delete the RSS feed file
+                    for (String rss : builder) UrlStorage.addDownloadedUrl(getContext().getApplicationContext(), rss, true, false); // And recreate it by adding the other links.
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+
+                        Set<String> sources = new HashSet<>(preferences.getStringSet("PodcastSources", new HashSet<>()));
             sources.remove(sourceUrl);
             preferences.edit().putStringSet("PodcastSources", sources).apply();
             container.removeView(chip);
@@ -335,6 +369,26 @@ public class SettingsFragment extends Fragment {
             }).start();
         });
         container.addView(chip);
+    }
+    /**
+     * Create all the chips of the RSS source feed section
+     * @param preferences the SharedPreferences object to share
+     * @param view the View where all the chips should be added should be added
+     */
+    private void generateSourceList(SharedPreferences preferences, ViewGroup view) {
+        BufferedReader xmlSources = UrlStorage.getDownloadBuffer(getContext().getApplicationContext(), true);
+        if (xmlSources != null) {
+            String sourceUrl;
+            try {
+                while ((sourceUrl = xmlSources.readLine()) != null) {
+                    String[] source = sourceUrl.split(" ");
+                    if (source.length > 3)
+                        CreateChip(String.join(" ", Arrays.copyOf(source, source.length - 3)), preferences, view);
+                }
+            } catch (Exception ignored) {
+
+            }
+        }
     }
 
 }

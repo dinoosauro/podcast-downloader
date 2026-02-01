@@ -30,7 +30,7 @@ public class ForegroundNotificationHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel serviceChannel = new NotificationChannel(
                     CHANNEL_ID,
-                    "Downloading Information",
+                    "Download Information",
                     NotificationManager.IMPORTANCE_DEFAULT
             );
             NotificationManager manager = context.getSystemService(NotificationManager.class);

@@ -293,6 +293,7 @@
                             android:layout_weight="6"
                             android:text="+" />
 
+
                     </LinearLayout>
 
                     <com.google.android.material.chip.ChipGroup
@@ -303,6 +304,32 @@
                         android:paddingRight="10sp">
 
                     </com.google.android.material.chip.ChipGroup>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="10sp"
+                        android:layout_marginRight="10sp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/exportSource"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="5sp"
+                            android:layout_marginRight="5sp"
+                            android:layout_weight="1"
+                            android:text="Export source list" />
+
+                        <Button
+                            android:id="@+id/importSource"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="5sp"
+                            android:layout_marginLeft="5sp"
+                            android:layout_weight="1"
+                            android:text="Import source list" />
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -338,7 +365,37 @@
                 android:layout_height="wrap_content"
                 android:text="@string/import_url_history" />
 
-            <TextView
+        <TextView
+            android:layout_width="match_parent"
+            style="@style/settingsTitleDivider"
+            android:layout_height="wrap_content"
+            android:text="@string/notifications" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/enableNotificationsAtEndOfConversion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/notifications_at_end"
+            android:textSize="16sp" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/enableNotificationForEachFile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/notifications_after_single_file"
+            android:textSize="16sp" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/enableNotificationsWhileDownloading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/notifications_while_downloading"
+            android:textSize="16sp" />
+
+
+
+
+        <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 style="@style/settingsTitleDivider"

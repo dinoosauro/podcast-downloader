@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -90,10 +91,10 @@ public class UrlStorage {
      * @return the BufferedReader, where each line is a new link
      * @implNote This function doesn't extract the link from the Podcast XML file, so there'll be in the last part of the string the track number settings. To remove them, split the string by a space, and then remove the last three entries.
      */
-    public static BufferedReader getDownloadBuffer(Context context, boolean getPodcastXmlList) {
+    public static BufferedReader getDownloadBuffer(Context context, boolean getPodcastXmlList)  {
         File file = new File(context.getFilesDir(), getPodcastXmlList ? "PodcastList.txt" : "DownloadedLinks.txt");
-        if (!file.exists()) return null;
         try {
+            if (!file.exists()) file.createNewFile();
             FileInputStream stream = new FileInputStream(file);
             return new BufferedReader(new InputStreamReader(stream));
         } catch (Exception ignored) {
