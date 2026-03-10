@@ -93,11 +93,11 @@ public class SearchFragment extends Fragment {
             new Thread(() -> {
                 try {
                     // Call the iTunes API
-                    URL url = new URL("https://itunes.apple.com/search?media=podcast&term=" + URLEncoder.encode(searchContent.getText().toString()));
+                    URL url = new URL("https://itunes.apple.com/search?media=podcast&term=" + URLEncoder.encode(searchContent.getText().toString(), java.nio.charset.StandardCharsets.UTF_8.toString()));
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("GET");
                     connection.setConnectTimeout(20000);
-                    connection.setReadTimeout(1000);
+                    connection.setReadTimeout(10000);
                     if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
                         getActivity().runOnUiThread(() -> {
                             Snackbar.make(root, getString(R.string.search_error), Snackbar.LENGTH_LONG).show();

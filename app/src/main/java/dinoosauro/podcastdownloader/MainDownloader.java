@@ -1,9 +1,11 @@
 package dinoosauro.podcastdownloader;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -119,6 +121,9 @@ public class MainDownloader extends AppCompatActivity {
                 }, true
         );
         checkIntent(getIntent());
+        if (getSharedPreferences(getBaseContext().getPackageName(), Context.MODE_PRIVATE).getBoolean("KeepScreenOn", false)) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
     }
 
     /**

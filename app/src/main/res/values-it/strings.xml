@@ -117,4 +117,5 @@
     <string name="notifications_while_downloading">Invia una notifica silenziosa che mostra il processo del download. È cosingliato mantenere questo interruttore attivo</string>
     <string name="export_source_list">Esporta lista delle sorgenti</string>
     <string name="import_source_list">Importa lista delle sorgenti</string>
+    <string name="keep_screen_on">Mantieni lo schermo acceso quando l\'applicazione è aperta</string>
 </resources>

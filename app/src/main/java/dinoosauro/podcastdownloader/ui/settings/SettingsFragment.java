@@ -14,10 +14,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -290,6 +292,14 @@ public class SettingsFragment extends Fragment {
                 }
             }
         });
+
+        // Switch to keep the screen active. We need to manually set the listener since we also need to change the window flag.
+        MaterialSwitch keepScreenOn = root.findViewById(R.id.keepScreenOn);
+        keepScreenOn.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            preferences.edit().putBoolean("KeepScreenOn", isChecked).apply();
+            if (isChecked) getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); else getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        });
+        keepScreenOn.setChecked(preferences.getBoolean("KeepScreenOn", false));
         return root;
     }
 

@@ -89,6 +89,8 @@ public class GetPodcastInformation {
                     URL url = new URL(systemId);
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestProperty("User-Agent", userAgent);
+                    connection.setConnectTimeout(10000);
+                    connection.setReadTimeout(30000);
                     InputStream inputStream = connection.getInputStream();
                     return new InputSource(inputStream);
                 }

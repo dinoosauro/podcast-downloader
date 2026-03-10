@@ -117,5 +117,6 @@
     <string name="notifications_while_downloading">Send a silent notification displaying the download process. It\'s recommended to keep this switch on</string>
     <string name="export_source_list">Export source list</string>
     <string name="import_source_list">Import source list</string>
+    <string name="keep_screen_on">Keep the screen on while the application is opened</string>
 
 </resources>
