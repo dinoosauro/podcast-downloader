@@ -47,14 +47,17 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="15sp"
+        android:layout_marginTop="0sp"
         android:layout_marginBottom="0dp"
+        android:padding="15sp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="0sp"
+            android:layout_marginBottom="0sp"
             android:orientation="vertical">
 
             <LinearLayout
@@ -69,10 +72,10 @@
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/searchQuery"
                         android:layout_width="match_parent"
-                        android:inputType="text"
-                        android:maxLines="1"
                         android:layout_height="wrap_content"
-                        android:hint="@string/write_podcast_name" />
+                        android:hint="@string/write_podcast_name"
+                        android:inputType="text"
+                        android:maxLines="1" />
                 </com.google.android.material.textfield.TextInputLayout>
 
             </LinearLayout>

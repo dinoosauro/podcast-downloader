@@ -53,8 +53,10 @@
 
     <style name="MainTitle" parent="TextAppearance.Material3.HeadlineLarge">
         <item name="android:fontFamily">@font/work_sans_bold</item>
+        <item name="fontFamily">@font/work_sans_bold</item>
     </style>
     <style name="SmallerTitle" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="fontFamily">@font/work_sans_bold</item>
         <item name="android:fontFamily">@font/work_sans_bold</item>
     </style>
     <style name="Theme.PodcastDownloader" parent="Base.Theme.PodcastDownloader" />

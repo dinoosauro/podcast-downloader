@@ -28,6 +28,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -300,6 +301,21 @@ public class SettingsFragment extends Fragment {
             if (isChecked) getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); else getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         });
         keepScreenOn.setChecked(preferences.getBoolean("KeepScreenOn", false));
+
+        // Update dark/light mode buttons
+
+        root.findViewById(R.id.lightMode).setOnClickListener(view -> {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            preferences.edit().putInt("DefaultNightMode", 1).apply();
+        });
+        root.findViewById(R.id.darkMode).setOnClickListener(view -> {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            preferences.edit().putInt("DefaultNightMode", 2).apply();
+        });
+        root.findViewById(R.id.followSystemMode).setOnClickListener(view -> {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+            preferences.edit().putInt("DefaultNightMode", -1).apply();
+        });
         return root;
     }
 

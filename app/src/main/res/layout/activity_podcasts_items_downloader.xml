@@ -4,6 +4,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     style="@style/Base.Theme.PodcastDownloader"
+    android:layout_marginTop="0sp"
+    android:layout_marginBottom="0sp"
+    android:padding="0sp"
     android:layout_height="match_parent">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -35,12 +38,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="15sp"
+        android:layout_marginTop="0sp"
+        android:layout_marginBottom="0sp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:id="@+id/podcastItemsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="0sp"
+            android:layout_marginBottom="0sp"
             android:orientation="vertical">
 
             <LinearLayout

@@ -3,24 +3,31 @@
     <style name="Base.Theme.PodcastDownloader" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <item name="colorPrimary">@color/accent_dark</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimaryContainer">@color/accent_dark</item>
+        <item name="colorOnPrimaryContainer">@color/black</item>
+
+        <!-- Secondary colors -->
+        <item name="colorSecondary">@color/accent_dark</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/accent_dark</item>
+        <item name="colorOnSecondaryContainer">@color/black</item>
+
+        <!-- Tertiary colors -->
+        <item name="colorTertiary">@color/accent_dark</item>
+        <item name="colorOnTertiary">@color/black</item>
+
+        <!-- Surface colors - this controls AppBarLayout -->
+        <item name="colorSurface">@color/black</item>
+        <item name="colorOnSurface">@color/white</item>
+
+        <!-- Font and spacing -->
         <item name="android:fontFamily">@font/work_sans</item>
         <item name="fontFamily">@font/work_sans</item>
-        <item name="android:layout_marginBottom">4sp</item>
-        <item name="android:layout_marginTop">4sp</item>
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textViewStyle">@style/TextStyle</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="android:layout_marginTop">4dp</item>
     </style>
-    <style name="TextStyle" parent="MaterialAlertDialog.Material3.Body.Text">
-    </style>
-    <style name="MainTitle">
-        <item name="android:fontFamily">@font/work_sans_bold</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textSize">36sp</item>
-    </style>
-    <style name="SmallerTitle">
-        <item name="android:fontFamily">@font/work_sans_bold</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textSize">24sp</item>
-    </style>
-
 
 </resources>

@@ -37,14 +37,17 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="15sp"
+        android:layout_marginTop="0sp"
         android:layout_marginBottom="0dp"
+        android:padding="15sp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
 
-    <LinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="0sp"
+            android:layout_marginBottom="0sp"
             android:orientation="vertical">
 
             <TextView
@@ -101,10 +104,12 @@
                 android:layout_height="wrap_content"
                 android:text="@string/save_xml_file"
                 android:textSize="16sp" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="@string/user_agent_description"/>
+                android:text="@string/user_agent_description" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -365,48 +370,87 @@
                 android:layout_height="wrap_content"
                 android:text="@string/import_url_history" />
 
-        <TextView
-            android:layout_width="match_parent"
-            style="@style/settingsTitleDivider"
-            android:layout_height="wrap_content"
-            android:text="@string/notifications" />
+            <TextView
+                style="@style/settingsTitleDivider"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/notifications" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/enableNotificationsAtEndOfConversion"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/notifications_at_end"
-            android:textSize="16sp" />
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/enableNotificationsAtEndOfConversion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/notifications_at_end"
+                android:textSize="16sp" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/enableNotificationForEachFile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/notifications_after_single_file"
-            android:textSize="16sp" />
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/enableNotificationForEachFile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/notifications_after_single_file"
+                android:textSize="16sp" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/enableNotificationsWhileDownloading"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/notifications_while_downloading"
-            android:textSize="16sp" />
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/enableNotificationsWhileDownloading"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/notifications_while_downloading"
+                android:textSize="16sp" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/keepScreenOn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/keep_screen_on"
-            android:textSize="16sp" />
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/keepScreenOn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/keep_screen_on"
+                android:textSize="16sp" />
+
+            <TextView
+                style="@style/settingsTitleDivider"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/application_theme" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/application_theme_desc" />
 
 
-
-
-        <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/lightMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5sp"
+                    android:layout_marginRight="5sp"
+                    android:layout_weight="1"
+                    android:text="@string/light_mode" />
+
+                <Button
+                    android:id="@+id/darkMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5sp"
+                    android:layout_marginLeft="5sp"
+                    android:layout_weight="1"
+                    android:text="@string/dark_mode" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/followSystemMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/follow_system" />
+
+            <TextView
                 style="@style/settingsTitleDivider"
-                android:text="@string/licenses"/>
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@string/licenses" />
 
             <LinearLayout
                 android:layout_width="match_parent"

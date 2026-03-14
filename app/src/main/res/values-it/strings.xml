@@ -88,7 +88,7 @@
     <string name="podcast_description">Descrizione del podcast</string>
     <string name="episode_number">Numero dell\'episodio</string>
     <string name="published_date">Data di pubblicazione</string>
-    <string name="licenses">Licenze</string>
+    <string name="licenses">Licenze:</string>
     <string name="customUserAgent">User Agent personalizzato (non viene inviato se vuoto)</string>
     <string name="user_agent_description">Se vuoi, puoi personalizzare l\'User Agent che viene invato quando si ottiene sia l\'XML che l\'audio. Se non sai cosa sia l\'User Agent, lascia vuoto questo campo.</string>
     <string name="keep_track_downloader_settings">Quando si scaricano automaticamente i nuovi podcast, usa le impostazioni del numero della traccia che sono state usate per l\'ultimo download di quel podcast invece di quelle generali</string>
@@ -118,4 +118,9 @@
     <string name="export_source_list">Esporta lista delle sorgenti</string>
     <string name="import_source_list">Importa lista delle sorgenti</string>
     <string name="keep_screen_on">Mantieni lo schermo acceso quando l\'applicazione è aperta</string>
+    <string name="application_theme">Tema dell\'applicazione:</string>
+    <string name="dark_mode">Modalità scura</string>
+    <string name="light_mode">Modalità chiara</string>
+    <string name="follow_system">Segui le impostazioni di sistema</string>
+    <string name="application_theme_desc">Clicca sui pulsanti seguenti per cambiare il tema dell\'applicazione.</string>
 </resources>

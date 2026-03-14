@@ -87,7 +87,7 @@
     <string name="podcast_description">Podcast description</string>
     <string name="episode_number">Episode number</string>
     <string name="published_date">Published date</string>
-    <string name="licenses">Licenses</string>
+    <string name="licenses">Licenses:</string>
     <string name="customUserAgent">Custom User Agent (none if blank)</string>
     <string name="user_agent_description">If you want, you can customize the User Agent that is sent when fetching both the XML and the MP3 files. If you don\'t know what this is, leave it blank.</string>
     <string name="keep_track_downloader_settings">When automatically downloading new podcasts, use the podcast track number settings that have been used for the last download of that podcast instead of the generic ones.</string>
@@ -118,5 +118,10 @@
     <string name="export_source_list">Export source list</string>
     <string name="import_source_list">Import source list</string>
     <string name="keep_screen_on">Keep the screen on while the application is opened</string>
+    <string name="application_theme">Application theme:</string>
+    <string name="dark_mode">Dark mode</string>
+    <string name="light_mode">Light mode</string>
+    <string name="follow_system">Follow system settings</string>
+    <string name="application_theme_desc">Click on the following buttons to change the application theme.</string>
 
 </resources>

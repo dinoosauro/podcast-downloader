@@ -171,13 +171,15 @@ public class GetPodcastInformation {
                             break;
                     }
                 }
+                Node enclosure = element.getElementsByTagName("enclosure").item(0);
+                if (enclosure == null || enclosure.getAttributes().getNamedItem("url") == null) continue; // Let's skip the podcast entries that don't have a valid URL
                 optionList.add(new ShowItems(
                         nullPlaceholder(element.getElementsByTagName("title").item(0), keepIndentation, shouldKeepLineBreak),
                         nullPlaceholder(element.getElementsByTagName("description").item(0), keepIndentation, shouldKeepLineBreak),
                         nullPlaceholder(element.getElementsByTagName("pubDate").item(0), keepIndentation, shouldKeepLineBreak),
                         podcastNumber,
                         author,
-                        element.getElementsByTagName("enclosure").item(0).getAttributes().getNamedItem("url").getNodeValue()
+                        enclosure.getAttributes().getNamedItem("url").getNodeValue()
                 ));
             }
             String image = null;
